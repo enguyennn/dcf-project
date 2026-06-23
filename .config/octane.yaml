@@ -1,0 +1,124 @@
+project:
+  name: ""
+  description: ""
+  overview_path: ./docs/repository_overview.md
+models:
+  default: claude-sonnet-4.6
+  roles:
+    premium: claude-opus-4.8
+    standard: claude-sonnet-4.6
+    fast: claude-haiku-4.5
+    reviewer: claude-opus-4.8
+  fallbacks:
+    - claude-sonnet-4.5
+    - gpt-4.1
+azure-test-platform:
+  primitives:
+    - Observe
+    - Diagnose
+  test_providers: {}
+eng-docs:
+  output-path: ./docs/
+  site-engine: docfx
+  include-diagrams: true
+  diagram-syntax: azure-devops
+  knowledge: null
+documentation:
+  output_path: ./docs/
+  template: documentation.template.md
+  include_diagrams: true
+  diagram_syntax: azure-devops
+research:
+  ado:
+    organization: ${ado_organization}
+    project: ${ado_project}
+  artifacts:
+    findings: .octane/research/findings
+    synthesis: .octane/research/synthesis
+    design: .octane/research/design
+    plans: .octane/research/plans
+tools:
+  code_search: code-search
+  ado: ado-stdio
+  work_iq: work-iq
+  enghub: enghub
+phases:
+  gather:
+    required_sources:
+      - ado
+      - workiq
+      - enghub
+      - codebase
+  synthesize:
+    outputs:
+      - problem_statement
+      - system_context
+      - stakeholder_map
+      - contracts
+      - constraints
+      - risks
+  design:
+    min_options: 2
+    max_options: 5
+    required_analysis:
+      - pros_cons
+      - contract_impact
+      - alignment_needs
+      - effort_estimate
+      - rollout_risk
+  plan:
+    required_sections:
+      - alignment_plan
+      - implementation_phases
+      - testing_strategy
+      - rollout_plan
+      - success_metrics
+spec-driven-development:
+  artifacts:
+    requirements: ./docs/projects/
+    prd: ./docs/projects/
+support-driven-docs:
+  channel:
+    name: ""
+    team: ""
+  meetings:
+    names: []
+    include_transcripts: true
+    include_recaps: true
+    include_meeting_chat: true
+  email:
+    mailbox: ""
+    keywords: []
+    include_threads: true
+  docs:
+    path: docs/
+    faq_path: docs/faq.md
+  analysis:
+    prioritize_human_responses: true
+    min_threads: 10
+  stackoverflow:
+    tag: ""
+test-analysis:
+  testing_instructions:
+    languages:
+      dotnet:
+        - Use built-in tools to run unit tests and integration tests
+        - Use `microsoft_docs_search` tool if additional help is required
+  analysis:
+    assessments:
+      test_coverage:
+        - Determine if all critical paths and edge cases are covered
+        - Highlight missing scenarios
+        - Suggest additional tests to improve coverage
+      reliability:
+        - Detect any flaky or unstable tests
+        - Recommend changes to improve consistency and determinism
+      best_practices:
+        - Review test structure, naming, and clarity
+        - Ensure alignment with recognized testing standards
+        - Suggest improvements for maintainability and readability
+unit-test-generation:
+  coverage-target: 80
+  max-coverage-iterations: 5
+  coverage-timeout-ms: 600000
+  ai-attribution: true

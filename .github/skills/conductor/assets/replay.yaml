@@ -1,0 +1,676 @@
+# Gatekeeper Replay — Conductor Workflow
+#
+# Replays a completed or active pull request through the Gatekeeper code review
+# pipeline to measure what percentage of human reviewer comments could have been
+# caught automatically. For each PR iteration that received reviewer comments,
+# runs a full Gatekeeper review against the diff the reviewer would have seen at
+# that point, then classifies each comment against the violations found.
+#
+# Architecture:
+#   parse_config (script) → fetch_iterations (script)
+#     → setup_bridge (agent — typed output for for_each)
+#       → create_worktrees (script)
+#         → review_iterations (for_each — Gatekeeper Review per iteration)
+#           → remove_worktrees (script)
+#             → fetch_comments (script)
+#               → analyze_iterations (for_each — classification per iteration)
+#                 → merge_analyses (script)
+#                   → reporter (agent — final summary)
+#                     → $end
+#
+# Usage (set WORKFLOW to the installed plugin's absolute path; run conductor
+# from the target repository root so --workspace-instructions discovers that
+# repo's conventions, not Octane's):
+#   WORKFLOW="$HOME/.copilot/installed-plugins/octane/octane-gatekeeper/skills/conductor/assets/replay.yaml"
+#   conductor run --workspace-instructions "$WORKFLOW" \
+#     --input pr_link="https://dev.azure.com/org/project/_git/repo/pullrequest/12345" \
+#     --input config_path=".github/gatekeeper/gkpconfig.yml" \
+#     --input output_dir="output/replay"
+#
+# With web dashboard:
+#   conductor run --workspace-instructions "$WORKFLOW" --web \
+#     --input pr_link="https://dev.azure.com/org/project/_git/repo/pullrequest/12345"
+
+workflow:
+  name: gatekeeper-replay
+  description: Replay a PR through Gatekeeper to measure reviewer comment coverage
+  version: "1.0.0"
+  entry_point: parse_config
+
+  runtime:
+    provider: copilot
+
+  input:
+    pr_link:
+      type: string
+      required: true
+      description: URL to the pull request (Azure DevOps or GitHub)
+    config_path:
+      type: string
+      required: false
+      default: ".github/gatekeeper/gkpconfig.yml"
+      description: Path to gkpconfig.yml configuration file (falls back to .github/gkpconfig.yml)
+    output_dir:
+      type: string
+      required: false
+      default: "output/replay"
+      description: Base output directory for all pipeline output files
+    worktree_prefix:
+      type: string
+      required: false
+      default: ""
+      description: Optional prefix for worktree directory names (e.g. "cd-" to avoid collisions)
+
+  context:
+    mode: explicit
+
+  limits:
+    max_iterations: 100
+
+  cost:
+    show_summary: true
+    show_per_agent: true
+
+agents:
+  # ── Step 1: Parse Configuration ──────────────────────────────────────
+  - name: parse_config
+    type: script
+    description: Parse and validate gkpconfig.yml using the parse-config skill
+    command: python
+    args:
+      - "{{ env.AGENCY_PLUGIN_DIR }}/skills/parse-config/scripts/parse_config.py"
+      - "--config"
+      - "{{ workflow.input.config_path }}"
+      - "--output"
+      - "{{ workflow.input.output_dir }}/config.json"
+    timeout: 30
+    routes:
+      - to: fetch_iterations
+        when: "exit_code == 0"
+      - to: $end
+
+  # ── Step 2: Fetch PR Iteration Timeline ──────────────────────────────
+  - name: fetch_iterations
+    type: script
+    description: Fetch PR iteration timeline with commit SHAs and comment counts
+    command: python
+    args:
+      - "{{ env.AGENCY_PLUGIN_DIR }}/skills/fetch-pr-iterations/scripts/fetch_pr_iterations.py"
+      - "--pr-url"
+      - "{{ workflow.input.pr_link }}"
+      - "--output"
+      - "{{ workflow.input.output_dir }}/pr-iterations.json"
+    timeout: 60
+    routes:
+      - to: setup_bridge
+        when: "exit_code == 0"
+      - to: $end
+
+  # ── Step 3: Bridge — Parse JSON into typed output for for_each ───────
+  #
+  # Script steps output {stdout, stderr, exit_code} as raw strings.
+  # for_each.source requires a typed array (list/tuple), confirmed by
+  # Conductor source: _resolve_array_reference() checks isinstance(current, (list, tuple)).
+  # This bridge agent reads the JSON files and exposes typed fields.
+  #
+  - name: setup_bridge
+    description: Read config.json and pr-iterations.json, output typed fields for downstream steps
+    model: ${OCTANE_MODEL_STANDARD:-claude-sonnet-4.6}
+    input:
+      - workflow.input.output_dir
+      - workflow.input.config_path
+      - workflow.input.pr_link
+    system_prompt: |
+      You are a data extraction agent. Your job is to read two JSON files and
+      return their contents as structured output. Do NOT modify the data.
+      Do NOT summarize. Extract exactly the fields specified.
+    prompt: |
+      Read these two JSON files and extract the fields below.
+
+      ## File 1: {{ workflow.input.output_dir }}/config.json
+
+      Extract:
+      - `repo_root`: the repo_root field
+      - `skills_root`: the skills_root field
+      - `config_path`: the resolved config file path (or "{{ workflow.input.config_path }}" if not in the JSON)
+
+      ## File 2: {{ workflow.input.output_dir }}/pr-iterations.json
+
+      Extract:
+      - `pr_url`: the pr_url field
+      - `pr_title`: the pr_title field
+      - `platform`: the platform field (e.g., "azure_devops" or "github")
+      - `total_iterations`: the total_iterations field
+      - `iterations_with_comments`: the iterations_with_comments field
+      - `total_code_comments`: the total_code_comments field
+      - `iterations`: an array containing ONLY iterations where comment_count > 0.
+        For each such iteration, include: iteration_id, base_commit, head_commit, comment_count.
+        The iteration data is in the `iteration_timeline` array in the JSON.
+
+      ## Config Relative Path
+
+      Also compute `config_rel_path`: the relative path of the config file from repo_root.
+      For example, if config_path is "/repo/.github/gatekeeper/gkpconfig.yml" and repo_root is "/repo",
+      then config_rel_path is ".github/gatekeeper/gkpconfig.yml".
+
+      Read both files using the read_file tool or by examining the filesystem, then return
+      ALL fields as structured output. Do not skip any field.
+    output:
+      repo_root:
+        type: string
+        description: Repository root path from config
+      skills_root:
+        type: string
+        description: Skills root path from config
+      config_path:
+        type: string
+        description: Resolved config file path
+      config_rel_path:
+        type: string
+        description: Config path relative to repo_root
+      pr_url:
+        type: string
+        description: Pull request URL
+      pr_title:
+        type: string
+        description: Pull request title
+      platform:
+        type: string
+        description: Platform (azure_devops or github)
+      total_iterations:
+        type: number
+        description: Total number of PR iterations
+      iterations_with_comments:
+        type: number
+        description: Number of iterations that have reviewer comments
+      total_code_comments:
+        type: number
+        description: Total number of code-level reviewer comments
+      iterations:
+        type: array
+        description: Iterations with comments (comment_count > 0)
+        items:
+          type: object
+          properties:
+            iteration_id:
+              type: string
+              description: Iteration identifier
+            base_commit:
+              type: string
+              description: Base (target) commit SHA
+            head_commit:
+              type: string
+              description: Head (source) commit SHA
+            comment_count:
+              type: number
+              description: Number of comments in this iteration
+    routes:
+      - to: create_worktrees
+
+  # ── Step 4: Create Git Worktrees ─────────────────────────────────────
+  - name: create_worktrees
+    type: script
+    description: Create isolated git worktrees for each commented iteration
+    command: python
+    args:
+      - "-c"
+      - |
+        import json, subprocess, sys, os, shutil
+        from pathlib import Path
+
+        output_dir = r'{{ workflow.input.output_dir }}'
+        repo_root = r'{{ setup_bridge.output.repo_root }}'
+        config_path = r'{{ setup_bridge.output.config_path }}'
+        config_rel_path = r'{{ setup_bridge.output.config_rel_path }}'
+        prefix = r'{{ workflow.input.worktree_prefix | default("") }}'
+
+        # Read iterations from the JSON file
+        with open(os.path.join(output_dir, 'pr-iterations.json'), 'r') as f:
+            data = json.load(f)
+
+        iterations = [it for it in data.get('iteration_timeline', []) if it.get('comment_count', 0) > 0]
+        results = []
+
+        for it in iterations:
+            iid = str(it['iteration_id'])
+            head = it['head_commit']
+            wt_path = os.path.join(output_dir, 'worktrees', f'{prefix}{iid}')
+
+            # Create output dir for iteration
+            os.makedirs(os.path.join(output_dir, f'iteration-{iid}', 'debug'), exist_ok=True)
+
+            try:
+                # Create worktree
+                subprocess.run(
+                    ['git', '-C', repo_root, 'worktree', 'add', '--detach', wt_path, head],
+                    check=True, capture_output=True, text=True
+                )
+                # Verify HEAD
+                result = subprocess.run(
+                    ['git', '-C', wt_path, 'rev-parse', 'HEAD'],
+                    check=True, capture_output=True, text=True
+                )
+                actual_head = result.stdout.strip()
+                if not actual_head.startswith(head[:8]):
+                    results.append({'iteration_id': iid, 'status': 'failed', 'error': f'HEAD mismatch: expected {head}, got {actual_head}'})
+                    continue
+
+                # Compute config path in worktree
+                wt_config = os.path.join(wt_path, config_rel_path)
+                if not os.path.exists(wt_config):
+                    os.makedirs(os.path.dirname(wt_config), exist_ok=True)
+                    shutil.copy2(config_path, wt_config)
+
+                results.append({'iteration_id': iid, 'status': 'ready', 'worktree': wt_path, 'config_path': wt_config})
+            except subprocess.CalledProcessError as e:
+                results.append({'iteration_id': iid, 'status': 'failed', 'error': e.stderr or str(e)})
+
+        print(json.dumps({'worktrees': results, 'count': len(results)}, indent=2))
+    timeout: 120
+    input:
+      - workflow.input.output_dir
+      - setup_bridge.output.repo_root
+      - setup_bridge.output.config_path
+      - setup_bridge.output.config_rel_path
+      - workflow.input.worktree_prefix?
+    routes:
+      - to: review_iterations
+        when: "exit_code == 0"
+      - to: $end
+
+  # ── Step 6: Remove Git Worktrees ─────────────────────────────────────
+  - name: remove_worktrees
+    type: script
+    description: Remove all git worktrees and prune
+    command: python
+    args:
+      - "-c"
+      - |
+        import json, subprocess, os
+        from pathlib import Path
+
+        output_dir = r'{{ workflow.input.output_dir }}'
+        repo_root = r'{{ setup_bridge.output.repo_root }}'
+        prefix = r'{{ workflow.input.worktree_prefix | default("") }}'
+
+        wt_dir = os.path.join(output_dir, 'worktrees')
+        if os.path.exists(wt_dir):
+            for entry in os.listdir(wt_dir):
+                wt_path = os.path.join(wt_dir, entry)
+                if os.path.isdir(wt_path):
+                    try:
+                        subprocess.run(
+                            ['git', '-C', repo_root, 'worktree', 'remove', wt_path, '--force'],
+                            capture_output=True, text=True
+                        )
+                    except Exception as e:
+                        print(f'Warning: failed to remove worktree {wt_path}: {e}')
+
+        subprocess.run(['git', '-C', repo_root, 'worktree', 'prune'], capture_output=True, text=True)
+        print('Worktrees removed and pruned.')
+    timeout: 60
+    input:
+      - workflow.input.output_dir
+      - setup_bridge.output.repo_root
+      - workflow.input.worktree_prefix?
+    routes:
+      - to: fetch_comments
+
+  # ── Step 7: Fetch All PR Comments ────────────────────────────────────
+  - name: fetch_comments
+    type: script
+    description: Fetch all PR reviewer comments
+    command: python
+    args:
+      - "{{ env.AGENCY_PLUGIN_DIR }}/skills/fetch-pr-comments/scripts/fetch_pr_comments.py"
+      - "--pr-url"
+      - "{{ setup_bridge.output.pr_url }}"
+      - "--iterations"
+      - "{{ workflow.input.output_dir }}/pr-iterations.json"
+      - "--output"
+      - "{{ workflow.input.output_dir }}/pr-comments.json"
+    timeout: 60
+    input:
+      - setup_bridge.output.pr_url
+      - workflow.input.output_dir
+    routes:
+      - to: analyze_iterations
+        when: "exit_code == 0"
+      - to: $end
+
+  # ── Step 9: Merge Per-Iteration Analyses ─────────────────────────────
+  - name: merge_analyses
+    type: script
+    description: Merge all per-iteration replay analyses into unified report
+    command: python
+    args:
+      - "{{ env.AGENCY_PLUGIN_DIR }}/skills/classify-comments/scripts/merge_iteration_analyses.py"
+      - "--iteration-dir"
+      - "{{ workflow.input.output_dir }}"
+      - "--output-dir"
+      - "{{ workflow.input.output_dir }}"
+      - "--pr-url"
+      - "{{ setup_bridge.output.pr_url }}"
+      - "--pr-title"
+      - "{{ setup_bridge.output.pr_title }}"
+      - "--platform"
+      - "{{ setup_bridge.output.platform }}"
+    timeout: 60
+    input:
+      - workflow.input.output_dir
+      - setup_bridge.output.pr_url
+      - setup_bridge.output.pr_title
+      - setup_bridge.output.platform
+    routes:
+      - to: reporter
+        when: "exit_code == 0"
+      - to: $end
+
+  # ── Step 10: Reporter — Final Summary ────────────────────────────────
+  - name: reporter
+    description: Read unified analysis and present final summary with coverage metrics
+    model: ${OCTANE_MODEL_PREMIUM:-claude-opus-4.8}
+    context_tier: long_context
+    reasoning:
+      effort: xhigh
+    input:
+      - workflow.input.output_dir
+      - setup_bridge.output.pr_url
+      - setup_bridge.output.pr_title
+      - setup_bridge.output.platform
+      - setup_bridge.output.total_iterations
+      - setup_bridge.output.iterations_with_comments
+      - setup_bridge.output.total_code_comments
+    system_prompt: |
+      You are a report presentation agent. Read the analysis files and present
+      a structured summary. Do not modify the analysis — just present it clearly.
+    prompt: |
+      Read the unified replay analysis and present the results.
+
+      ## Files to Read
+
+      - `{{ workflow.input.output_dir }}/replay-analysis.json` — Machine-readable unified analysis
+      - `{{ workflow.input.output_dir }}/replay-analysis-report.md` — Human-readable report
+
+      ## PR Overview
+
+      - PR URL: {{ setup_bridge.output.pr_url }}
+      - PR Title: {{ setup_bridge.output.pr_title }}
+      - Platform: {{ setup_bridge.output.platform }}
+      - Total Iterations: {{ setup_bridge.output.total_iterations }}
+      - Iterations with Comments: {{ setup_bridge.output.iterations_with_comments }}
+      - Total PR Comments: {{ setup_bridge.output.total_code_comments }}
+
+      ## Instructions
+
+      1. Read `replay-analysis.json` and extract the classification summary
+         (caught, partial, missed, out_of_scope counts and percentages).
+
+      2. Write a **run manifest** to `{{ workflow.input.output_dir }}/run-manifest.json` with:
+         - run_id (ISO-8601 timestamp)
+         - pr_link, config_path
+         - iterations_reviewed (array with per-iteration violation summaries)
+         - total_violations, total_pr_comments
+         - classification_summary (caught, partial, missed, out_of_scope)
+         Sort all arrays deterministically.
+
+      3. Present this summary format:
+
+      ```markdown
+      # Gatekeeper Replay Analysis
+
+      ## PR Overview
+      | Metric | Value |
+      |--------|-------|
+      | Pull Request | [title with link] |
+      | Platform | [platform] |
+      | Total Iterations | [count] |
+      | Iterations w/ Comments | [count] |
+      | Total PR Comments | [count] |
+
+      ## Comment Analysis
+      | Classification | Count | Percentage |
+      |---------------|-------|------------|
+      | CAUGHT | [n] | [x%] |
+      | PARTIAL | [n] | [x%] |
+      | MISSED | [n] | [x%] |
+      | OUT_OF_SCOPE | [n] | [x%] |
+
+      ## Key Finding
+      > **[X]% of actionable PR comments could have been avoided**
+      > _(Avoidable = CAUGHT + PARTIAL)_
+      ```
+
+      4. Based on coverage:
+         - High (>70% avoidable): Recommend enabling Gatekeeper in CI/CD
+         - Moderate (30-70%): Suggest reviewing MISSED comments for guideline gaps
+         - Low (<30%): Suggest prioritizing guideline creation for common MISSED categories
+    output:
+      summary:
+        type: string
+        description: The formatted summary report
+      coverage_percentage:
+        type: number
+        description: Percentage of actionable comments that were avoidable (CAUGHT + PARTIAL)
+    routes:
+      - to: $end
+
+# ── For-Each Groups ────────────────────────────────────────────────────
+
+for_each:
+  # ── Step 5: Review Each Iteration via Gatekeeper ─────────────────────
+  - name: review_iterations
+    type: for_each
+    description: Run Gatekeeper code review pipeline for each commented iteration
+    source: setup_bridge.output.iterations
+    as: iteration
+    max_concurrent: 3
+    failure_mode: continue_on_error
+
+    agent:
+      name: gatekeeper_reviewer
+      model: ${OCTANE_MODEL_PREMIUM:-claude-opus-4.8}
+      context_tier: long_context
+      reasoning:
+        effort: xhigh
+      system_prompt: |
+        You are the Gatekeeper code review orchestrator. You run the full Gatekeeper
+        pipeline (discover guidelines, filter files, batch, dispatch reviewers, aggregate)
+        against a specific commit range in a git worktree.
+
+        CRITICAL RULES:
+        - Run the FULL pipeline. Do NOT skip any stage.
+        - Do NOT guess or fabricate violations. Actually read the code.
+        - The worktree is your repository root for all git operations and file reads.
+        - After review, do NOT attempt to restore git state.
+      prompt: |
+        Run the Gatekeeper Review pipeline with these inputs:
+
+        ## Iteration Details
+        - Iteration ID: {{ iteration.iteration_id }}
+        - Base Commit: {{ iteration.base_commit }}
+        - Head Commit: {{ iteration.head_commit }}
+
+        ## Configuration
+        - Working Tree: {{ workflow.input.output_dir }}/worktrees/{{ workflow.input.worktree_prefix | default("") }}{{ iteration.iteration_id }}
+        - Config Path: {{ workflow.input.output_dir }}/worktrees/{{ workflow.input.worktree_prefix | default("") }}{{ iteration.iteration_id }}/{{ setup_bridge.output.config_rel_path }}
+        - Skills Root: {{ setup_bridge.output.skills_root }}
+        - Commit Range: {{ iteration.base_commit }}...{{ iteration.head_commit }}
+
+        ## Instructions
+
+        Run the Gatekeeper Review pipeline (Octane.GatekeeperReview.agent.md):
+
+        1. Use the `prepare-review` skill to discover guidelines and match files
+        2. Use the `batch-files` skill to create review batches
+        3. Dispatch GatekeeperGuidelineReviewer sub-agents for each batch
+        4. Use the `merge-reports` skill to aggregate results
+
+        Use the working tree path above as the repository root for ALL git operations
+        and file reads. The commit range uses three-dot notation to include only the
+        PR author's changes.
+
+        Write all output files to: {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/
+
+        The `--debug` flag is set: write debug state files per the debug-export skill.
+
+        Return the complete final-review.json content and a summary of all violations
+        found (file, line, guideline, severity, description).
+      output:
+        violations_count:
+          type: number
+          description: Number of violations found
+        status:
+          type: string
+          description: Execution status (success or failed)
+
+    routes:
+      - to: remove_worktrees
+
+  # ── Step 8: Analyze Each Iteration ───────────────────────────────────
+  - name: analyze_iterations
+    type: for_each
+    description: Run GatekeeperReplayAnalyzer per iteration to classify PR comments
+    source: setup_bridge.output.iterations
+    as: iteration
+    max_concurrent: 3
+    failure_mode: continue_on_error
+
+    agent:
+      name: iteration_analyzer
+      model: ${OCTANE_MODEL_PREMIUM:-claude-opus-4.8}
+      context_tier: long_context
+      reasoning:
+        effort: xhigh
+      system_prompt: |
+        You are the GatekeeperReplayAnalyzer — a specialized analysis agent for the
+        Gatekeeper Replay pipeline. You merge violations, classify PR comments against
+        them, and produce a coverage analysis report for a single iteration.
+
+        You MUST use the deterministic Python scripts for merging and grouping.
+        You MUST dispatch CommentClassifier sub-agents for classification — never
+        classify comments yourself.
+
+        FAIL-FAST: If any required tool, script, or data is missing, STOP immediately
+        and report the problem. Do not continue with partial execution.
+      prompt: |
+        Analyze iteration {{ iteration.iteration_id }} of the PR replay.
+
+        ## Inputs
+
+        - OUTPUT_DIR: {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}
+        - PR_URL: {{ setup_bridge.output.pr_url }}
+        - PR_TITLE: {{ setup_bridge.output.pr_title }}
+        - PLATFORM: {{ setup_bridge.output.platform }}
+        - COMMENTS_JSON: {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/pr-comments.json
+        - SKILLS_ROOT: {{ setup_bridge.output.skills_root }}
+
+        ## Step 0: Filter Comments to This Iteration
+
+        Run:
+        ```bash
+        python {{ setup_bridge.output.skills_root }}/../skills/fetch-pr-comments/scripts/fetch_pr_comments.py \
+          --pr-url {{ setup_bridge.output.pr_url }} \
+          --iterations {{ workflow.input.output_dir }}/pr-iterations.json \
+          --iteration-id {{ iteration.iteration_id }} \
+          --output {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/pr-comments.json
+        ```
+
+        If the script is not found at that path, try `{{ env.AGENCY_PLUGIN_DIR }}/skills/fetch-pr-comments/scripts/fetch_pr_comments.py`.
+
+        ## Step 1: Clear Previous Outputs
+
+        Delete any stale files: all-violations.json, merge-summary.json, classify-batches.json,
+        replay-analysis.json, replay-analysis-report.md. Empty the classifications/ directory.
+
+        ## Step 2: Merge Violations
+
+        ```bash
+        python {{ env.AGENCY_PLUGIN_DIR }}/skills/classify-comments/scripts/merge_violations.py \
+          --files {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/final-review.json \
+          --output {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/all-violations.json \
+          --summary {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/merge-summary.json
+        ```
+
+        ## Step 3: Group Comments into Classification Batches
+
+        ```bash
+        python {{ env.AGENCY_PLUGIN_DIR }}/skills/classify-comments/scripts/group_comments.py \
+          --comments {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/pr-comments.json \
+          --violations {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/all-violations.json \
+          --output {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/classify-batches.json \
+          --max-per-batch 8
+        ```
+
+        ## Step 4: Classify Each Batch via CommentClassifier Sub-Agents
+
+        For EACH batch in classify-batches.json, dispatch a CommentClassifier sub-agent.
+        One batch = one runSubagent call. NEVER classify inline. NEVER combine batches.
+
+        Prompt each CommentClassifier with:
+        - File name
+        - Comments table (ID, Line, Type, Body)
+        - Violations table (Start, End, Guideline, Violation)
+
+        Write each result to: classifications/classify-{batch_id}.json
+
+        ## Step 5: Merge Classifications
+
+        ```bash
+        python {{ env.AGENCY_PLUGIN_DIR }}/skills/classify-comments/scripts/merge_classifications.py \
+          --batches {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/classify-batches.json \
+          --results {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/classifications/ \
+          --comments {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/pr-comments.json \
+          --violations {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/all-violations.json \
+          --merge-summary {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/merge-summary.json \
+          --output-dir {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }} \
+          --pr-url {{ setup_bridge.output.pr_url }} \
+          --pr-title "{{ setup_bridge.output.pr_title }}" \
+          --platform {{ setup_bridge.output.platform }}
+        ```
+
+        ## Classification Thresholds
+
+        - CAUGHT: sem >= 20 AND total_score >= 55
+        - PARTIAL: sem = 20 AND total_score 25-54
+        - MISSED: sem = 0 (actionable but not caught)
+        - OUT_OF_SCOPE: No matching violation, purely subjective
+
+        ## Output
+
+        Write:
+        - {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/replay-analysis.json
+        - {{ workflow.input.output_dir }}/iteration-{{ iteration.iteration_id }}/replay-analysis-report.md
+
+        Return the classification summary with counts.
+      output:
+        status:
+          type: string
+          description: Execution status (success or failed)
+        caught_count:
+          type: number
+          description: Number of CAUGHT comments
+        partial_count:
+          type: number
+          description: Number of PARTIAL comments
+        missed_count:
+          type: number
+          description: Number of MISSED comments
+        out_of_scope_count:
+          type: number
+          description: Number of OUT_OF_SCOPE comments
+
+    routes:
+      - to: merge_analyses
+
+# ── Workflow Output ────────────────────────────────────────────────────
+
+output:
+  pr_link: "{{ workflow.input.pr_link }}"
+  pr_title: "{{ setup_bridge.output.pr_title }}"
+  platform: "{{ setup_bridge.output.platform }}"
+  total_iterations: "{{ setup_bridge.output.total_iterations }}"
+  iterations_with_comments: "{{ setup_bridge.output.iterations_with_comments }}"
+  total_code_comments: "{{ setup_bridge.output.total_code_comments }}"
+  coverage_percentage: "{{ reporter.output.coverage_percentage }}"
+  summary: "{{ reporter.output.summary }}"

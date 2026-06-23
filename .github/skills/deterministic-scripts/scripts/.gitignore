@@ -1,0 +1,6 @@
+# Temp files from E2E runs
+--output-file
+code-review-findings.json
+phase1c-output.json
+*.pyc
+__pycache__/
