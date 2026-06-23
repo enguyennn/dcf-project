@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1782256423862" clover="3.2.0">
+  <project timestamp="1782256423862" name="All files">
+    <metrics statements="69" coveredstatements="69" conditionals="14" coveredconditionals="13" methods="18" coveredmethods="18" elements="101" coveredelements="100" complexity="0" loc="69" ncloc="69" packages="2" files="2" classes="2"/>
+    <package name="data">
+      <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="defaultAssumptions.ts" path="C:\Users\t-ethnguyen\Project 1\DCF Project\src\data\defaultAssumptions.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="4" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="utils">
+      <metrics statements="68" coveredstatements="68" conditionals="14" coveredconditionals="13" methods="18" coveredmethods="18"/>
+      <file name="dcfCalculations.ts" path="C:\Users\t-ethnguyen\Project 1\DCF Project\src\utils\dcfCalculations.ts">
+        <metrics statements="68" coveredstatements="68" conditionals="14" coveredconditionals="13" methods="18" coveredmethods="18"/>
+        <line num="5" count="37" type="stmt"/>
+        <line num="10" count="35" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="23" count="10" type="stmt"/>
+        <line num="24" count="10" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="30" count="13" type="stmt"/>
+        <line num="31" count="13" type="stmt"/>
+        <line num="32" count="38" type="stmt"/>
+        <line num="34" count="13" type="stmt"/>
+        <line num="58" count="12" type="stmt"/>
+        <line num="59" count="12" type="stmt"/>
+        <line num="60" count="12" type="stmt"/>
+        <line num="61" count="12" type="stmt"/>
+        <line num="62" count="12" type="stmt"/>
+        <line num="63" count="12" type="stmt"/>
+        <line num="65" count="12" type="stmt"/>
+        <line num="66" count="33" type="stmt"/>
+        <line num="67" count="33" type="cond" truecount="2" falsecount="0"/>
+        <line num="69" count="33" type="stmt"/>
+        <line num="70" count="33" type="stmt"/>
+        <line num="71" count="33" type="stmt"/>
+        <line num="72" count="33" type="stmt"/>
+        <line num="73" count="33" type="stmt"/>
+        <line num="74" count="33" type="stmt"/>
+        <line num="76" count="33" type="stmt"/>
+        <line num="77" count="33" type="stmt"/>
+        <line num="78" count="33" type="stmt"/>
+        <line num="79" count="33" type="stmt"/>
+        <line num="80" count="33" type="stmt"/>
+        <line num="81" count="33" type="stmt"/>
+        <line num="84" count="12" type="stmt"/>
+        <line num="89" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="90" count="2" type="stmt"/>
+        <line num="92" count="19" type="stmt"/>
+        <line num="97" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="98" count="2" type="stmt"/>
+        <line num="100" count="2" type="stmt"/>
+        <line num="105" count="64" type="stmt"/>
+        <line num="110" count="60" type="stmt"/>
+        <line num="115" count="21" type="stmt"/>
+        <line num="120" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="121" count="2" type="stmt"/>
+        <line num="123" count="8" type="stmt"/>
+        <line num="139" count="3" type="stmt"/>
+        <line num="140" count="3" type="stmt"/>
+        <line num="149" count="3" type="stmt"/>
+        <line num="151" count="3" type="stmt"/>
+        <line num="152" count="6" type="stmt"/>
+        <line num="153" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="154" count="12" type="stmt"/>
+        <line num="155" count="12" type="stmt"/>
+        <line num="156" count="12" type="stmt"/>
+        <line num="157" count="12" type="stmt"/>
+        <line num="158" count="12" type="stmt"/>
+        <line num="159" count="12" type="cond" truecount="1" falsecount="1"/>
+        <line num="160" count="12" type="stmt"/>
+        <line num="170" count="7" type="stmt"/>
+        <line num="172" count="7" type="stmt"/>
+        <line num="182" count="7" type="stmt"/>
+        <line num="192" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="196" count="21" type="stmt"/>
+        <line num="197" count="7" type="stmt"/>
+        <line num="198" count="7" type="stmt"/>
+        <line num="199" count="7" type="stmt"/>
+        <line num="200" count="7" type="stmt"/>
+        <line num="201" count="7" type="stmt"/>
+        <line num="203" count="7" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
