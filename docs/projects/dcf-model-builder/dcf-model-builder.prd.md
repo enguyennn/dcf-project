@@ -430,7 +430,7 @@ All data flows are client-side:
 
 ---
 
-### EPIC-004: Input Validation and Warning System
+### EPIC-004: Input Validation and Warning System (DONE)
 
 **Goal**: Implement the validation engine that detects unrealistic inputs and surfaces educational warnings without blocking calculation.
 
@@ -438,9 +438,9 @@ All data flows are client-side:
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-027 | Create `src/utils/validation.ts` with a `validateInputs` function: accepts `DCFInputs`, returns `ValidationWarning[]`. Implement all warning rules: (1) WACC ≤ perpetuityGrowthRate → severity 'error', message explains perpetuity TV is mathematically invalid. (2) revenueGrowthRate > 0.30 or < -0.20 → severity 'warning', message explains extreme growth. (3) operatingMarginRate > 0.50 or < -0.10 → 'warning'. (4) capExRate === 0 when revenueGrowthRate > 0 → 'warning', likely missing data. (5) terminalValue > 0.85 * enterpriseValue → 'warning' (this check requires computed outputs, so add a separate `validateOutputs` function for post-calculation checks). (6) industry is 'banking', 'insurance', or 'real-estate' → 'warning', FCFF may be inappropriate. (7) Any required numeric field is NaN, undefined, or null → severity 'error'. | Not Started | src/utils/validation.ts |
-| ITEM-028 | Create `tests/validation.test.ts` with unit tests for each warning rule. Test that valid inputs produce zero warnings. Test each rule individually by providing inputs that trigger exactly that rule. Test multiple simultaneous warnings. Test the 'error' vs 'warning' severity distinction. Minimum 15 test cases. | Not Started | tests/validation.test.ts |
-| ITEM-029 | Run `npm test` and verify all validation tests pass alongside calculation tests. | Not Started | tests/validation.test.ts |
+| ITEM-027 | Create `src/utils/validation.ts` with a `validateInputs` function: accepts `DCFInputs`, returns `ValidationWarning[]`. Implement all warning rules: (1) WACC ≤ perpetuityGrowthRate → severity 'error', message explains perpetuity TV is mathematically invalid. (2) revenueGrowthRate > 0.30 or < -0.20 → severity 'warning', message explains extreme growth. (3) operatingMarginRate > 0.50 or < -0.10 → 'warning'. (4) capExRate === 0 when revenueGrowthRate > 0 → 'warning', likely missing data. (5) terminalValue > 0.85 * enterpriseValue → 'warning' (this check requires computed outputs, so add a separate `validateOutputs` function for post-calculation checks). (6) industry is 'banking', 'insurance', or 'real-estate' → 'warning', FCFF may be inappropriate. (7) Any required numeric field is NaN, undefined, or null → severity 'error'. | Done | src/utils/validation.ts |
+| ITEM-028 | Create `tests/validation.test.ts` with unit tests for each warning rule. Test that valid inputs produce zero warnings. Test each rule individually by providing inputs that trigger exactly that rule. Test multiple simultaneous warnings. Test the 'error' vs 'warning' severity distinction. Minimum 15 test cases. | Done | tests/validation.test.ts |
+| ITEM-029 | Run `npm test` and verify all validation tests pass alongside calculation tests. | Done | tests/validation.test.ts |
 
 ---
 
