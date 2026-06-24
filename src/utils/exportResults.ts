@@ -64,8 +64,9 @@ export function generateCSV(inputs: DCFInputs, outputs: DCFOutputs): string {
 /**
  * ITEM-063: Browser-only CSV download via Blob + temporary anchor.
  * Falls back to clipboard copy on failure (FM-007).
+ * Returns outcome so the caller can notify the user.
  */
-export function downloadCSV(filename: string, csv: string): void {
+export async function downloadCSV(filename: string, csv: string): Promise<'downloaded' | 'clipboard' | 'failed'> {
   try {
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -76,7 +77,13 @@ export function downloadCSV(filename: string, csv: string): void {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    return 'downloaded';
   } catch {
-    navigator.clipboard.writeText(csv).catch(() => {});
+    try {
+      await navigator.clipboard.writeText(csv);
+      return 'clipboard';
+    } catch {
+      return 'failed';
+    }
   }
 }

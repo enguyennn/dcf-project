@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { generateCSV } from '../src/utils/exportResults';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { generateCSV, downloadCSV } from '../src/utils/exportResults';
 import { mergeAssumptions } from '../src/utils/assumptionEngine';
 import { runFullDCF } from '../src/utils/dcfCalculations';
 import type { DCFInputs, DCFOutputs } from '../src/models/financialTypes';
@@ -59,5 +59,64 @@ describe('generateCSV', () => {
     const commaOutputs = runFullDCF(commaInputs);
     const csv = generateCSV(commaInputs, commaOutputs);
     expect(csv).toContain('"Acme, Inc."');
+  });
+});
+
+describe('downloadCSV', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns 'downloaded' when Blob/anchor path succeeds", async () => {
+    const mockAnchor = { href: '', download: '', click: vi.fn() };
+    vi.stubGlobal('Blob', class MockBlob { constructor() {} });
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn(() => 'blob:mock'),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.stubGlobal('document', {
+      createElement: vi.fn(() => mockAnchor),
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    });
+
+    const result = await downloadCSV('test.csv', 'a,b,c');
+    expect(result).toBe('downloaded');
+    expect(mockAnchor.click).toHaveBeenCalled();
+  });
+
+  it("returns 'clipboard' when download path throws but clipboard succeeds", async () => {
+    vi.stubGlobal('Blob', class MockBlob { constructor() {} });
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn(() => { throw new Error('createObjectURL failed'); }),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.stubGlobal('document', {
+      createElement: vi.fn(() => ({})),
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    });
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+
+    const result = await downloadCSV('test.csv', 'a,b,c');
+    expect(result).toBe('clipboard');
+  });
+
+  it("returns 'failed' when both download path and clipboard reject", async () => {
+    vi.stubGlobal('Blob', class MockBlob { constructor() {} });
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn(() => { throw new Error('createObjectURL failed'); }),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.stubGlobal('document', {
+      createElement: vi.fn(() => ({})),
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    });
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: vi.fn().mockRejectedValue(new Error('clipboard denied')) },
+    });
+
+    const result = await downloadCSV('test.csv', 'a,b,c');
+    expect(result).toBe('failed');
   });
 });

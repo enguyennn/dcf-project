@@ -42,6 +42,7 @@ function App() {
   const [researched, setResearched] = useState<Record<string, ResearchDataSource>>({})
   const [outputTab, setOutputTab] = useState<OutputTab>('valuation')
   const [weights, setWeights] = useState({ conservative: 0.25, base: 0.5, optimistic: 0.25 })
+  const [exportStatus, setExportStatus] = useState<'idle' | 'clipboard' | 'failed'>('idle')
   const { outputs, warnings, hasBlockingError } = useMemo(() => {
     const inputWarnings: ValidationWarning[] = validateInputs(inputs)
     let computedOutputs: DCFOutputs | null = null
@@ -204,11 +205,22 @@ function App() {
                     {/* Download CSV button (ITEM-063) */}
                     <button
                       type="button"
-                      onClick={() => downloadCSV('dcf-results.csv', generateCSV(inputs, outputs))}
+                      onClick={async () => {
+                        const status = await downloadCSV('dcf-results.csv', generateCSV(inputs, outputs));
+                        setExportStatus(status === 'downloaded' ? 'idle' : status);
+                      }}
                       className="px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded hover:bg-gray-900 transition-colors"
                     >
                       Download Results
                     </button>
+                    {exportStatus !== 'idle' && (
+                      <p className="text-red-600 text-sm mt-2">
+                        Export failed. Please try again or copy the data from the table directly.
+                        {exportStatus === 'clipboard' && (
+                          <span className="block text-gray-600">The results have been copied to your clipboard instead.</span>
+                        )}
+                      </p>
+                    )}
                   </div>
                 )}
 
