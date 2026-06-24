@@ -30,11 +30,11 @@ npm run dev
 
 ## Deployment
 
-The site deploys automatically to [Azure Static Web Apps](https://learn.microsoft.com/azure/static-web-apps/) via GitHub Actions on every push to `main`. Pull requests get a temporary preview environment automatically.
+The site deploys automatically to [Vercel](https://vercel.com/) via Vercel's native Git integration on every push to `main`. Pull requests get a preview deployment automatically.
 
-**Setup (one-time):** Create an Azure Static Web Apps resource linked to this repo. Azure adds the `AZURE_STATIC_WEB_APPS_API_TOKEN` deployment-token secret to the repo automatically. The build config is `app_location: "/"`, `output_location: "dist"`. Client-side routing falls back to `index.html` via [`public/staticwebapp.config.json`](public/staticwebapp.config.json).
+**Setup (one-time):** Import this repo at [vercel.com/new](https://vercel.com/new). Vercel auto-detects the Vite framework preset (build command `npm run build`, output directory `dist`). Client-side routing falls back to `index.html` via [`vercel.json`](vercel.json). No GitHub Actions workflow or secrets are required.
 
-**Live URL**: assigned by Azure when the Static Web App is created (e.g. `https://<name>.azurestaticapps.net`).
+**Live URL**: assigned by Vercel when the project is created (e.g. `https://<project>.vercel.app`).
 
 ## Architecture
 

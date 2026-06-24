@@ -507,18 +507,18 @@ All data flows are client-side:
 
 ---
 
-### EPIC-009: GitHub Pages Deployment Workflow — DONE
+### EPIC-009: Vercel Deployment — DONE
 
-**Goal**: Create the GitHub Actions workflow that builds and deploys the static site to GitHub Pages on every push to `main`. Configure the Vite base path correctly.
+**Goal**: Deploy the static site to Vercel using Vercel's native Git integration, which builds and deploys automatically on every push to `main`. Configure the Vite base path and SPA fallback correctly.
 
 **Traces to**: NFR-001, REQ-002, AC-017
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-049 | Create `.github/workflows/deploy.yml` with a GitHub Actions workflow: trigger on `push` to `main` branch. Jobs: (1) `build` — checkout code, setup Node.js 18, `npm ci`, `npm run build`, upload `dist/` as artifact. (2) `deploy` — download artifact, deploy to GitHub Pages using `actions/deploy-pages@v4`. Set permissions: `contents: read`, `pages: write`, `id-token: write`. Add `environment: github-pages` with the URL output. | Done | .github/workflows/deploy.yml |
-| ITEM-050 | Verify `vite.config.ts` has the correct `base` path matching the GitHub repository name (e.g., `base: '/DCF-Project/'`). Ensure the build output works when served from a subpath by running `npm run build` then `npm run preview` and verifying all assets load correctly. | Done | vite.config.ts |
-| ITEM-051 | Update `README.md` with: project title, brief description, tech stack list, setup instructions (`npm install`, `npm run dev`, `npm test`), deployment notes (automatic via GitHub Actions on push to main), link to the live GitHub Pages URL, and architecture overview (link to this PRD). | Done | README.md |
-| ITEM-052 | Push to `main` branch and verify the GitHub Actions workflow runs successfully. Confirm the site is accessible at the GitHub Pages URL and all features (form input, calculation, output table, sensitivity table) work in the deployed version. | Manual | .github/workflows/deploy.yml |
+| ITEM-049 | Create `vercel.json` configuring SPA fallback so client-side routes resolve to `index.html` (`rewrites`: `/(.*)` → `/index.html`). Deployment uses Vercel's native Git integration (auto-build on push to `main`, preview deploys per PR) — no GitHub Actions workflow or deploy secrets are required. | Done | vercel.json |
+| ITEM-050 | Verify `vite.config.ts` `base` is `/` (Vercel serves from the domain root). Ensure the build output works by running `npm run build` and confirming `dist/index.html` references root-relative assets (`/assets/...`). | Done | vite.config.ts |
+| ITEM-051 | Update `README.md` with: project title, brief description, tech stack list, setup instructions (`npm install`, `npm run dev`, `npm test`), deployment notes (automatic via Vercel Git integration on push to main), link to the live Vercel URL, and architecture overview (link to this PRD). | Done | README.md |
+| ITEM-052 | Import the repo into Vercel ([vercel.com/new](https://vercel.com/new)), confirm the Vite preset (build `npm run build`, output `dist`), then push to `main` and verify the live deployment. Confirm all features (form input, calculation, output table, sensitivity table) work in the deployed version. | Manual | vercel.json |
 
 ---
 
