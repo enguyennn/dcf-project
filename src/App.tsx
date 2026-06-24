@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import Disclaimer from './components/Disclaimer'
+import TextInputPanel from './components/TextInputPanel'
+import AssumptionsForm from './components/AssumptionsForm'
+import { mergeAssumptions } from './utils/assumptionEngine'
+import type { DCFInputs, FinancialData } from './models/financialTypes'
 
 type View = 'landing' | 'workspace'
 type EntryMode = 'manual' | 'paste'
@@ -7,18 +11,39 @@ type EntryMode = 'manual' | 'paste'
 function App() {
   const [view, setView] = useState<View>('landing')
   const [mode, setMode] = useState<EntryMode>('manual')
+  const [inputs, setInputs] = useState<DCFInputs>(() => mergeAssumptions({}))
 
   function handleStart(selectedMode: EntryMode) {
     setMode(selectedMode)
     setView('workspace')
   }
 
+  function handleParsed(parsed: Partial<FinancialData>) {
+    setInputs((prev) => mergeAssumptions({ ...prev, ...parsed }))
+  }
+
+  function handleFieldChange(field: string, value: number | string) {
+    setInputs((prev) => {
+      if (field.startsWith('company.')) {
+        const companyKey = field.slice(8);
+        return { ...prev, company: { ...prev.company, [companyKey]: value } }
+      }
+      return { ...prev, [field]: value }
+    })
+  }
+
   if (view === 'workspace') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">DCF Workspace</h1>
-          <p className="text-gray-600">Entry mode: <span className="font-semibold">{mode}</span></p>
+      <div className="min-h-screen p-8">
+        <h1 className="text-3xl font-bold mb-6">DCF Workspace</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            {mode === 'paste' && <TextInputPanel onParsed={handleParsed} />}
+            <AssumptionsForm values={inputs} onChange={handleFieldChange} />
+          </div>
+          <div className="text-sm text-gray-500">
+            <p>Entry mode: <span className="font-semibold">{mode}</span></p>
+          </div>
         </div>
       </div>
     )
