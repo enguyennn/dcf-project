@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Disclaimer from './components/Disclaimer'
 import TextInputPanel from './components/TextInputPanel'
 import AssumptionsForm from './components/AssumptionsForm'
+import DcfOutputTable from './components/DcfOutputTable'
+import SensitivityTable from './components/SensitivityTable'
 import { mergeAssumptions } from './utils/assumptionEngine'
-import type { DCFInputs, FinancialData } from './models/financialTypes'
+import { runFullDCF } from './utils/dcfCalculations'
+import { validateInputs, validateOutputs } from './utils/validation'
+import type { DCFInputs, DCFOutputs, FinancialData, ValidationWarning } from './models/financialTypes'
 
 type View = 'landing' | 'workspace'
 type EntryMode = 'manual' | 'paste'
@@ -12,6 +16,24 @@ function App() {
   const [view, setView] = useState<View>('landing')
   const [mode, setMode] = useState<EntryMode>('manual')
   const [inputs, setInputs] = useState<DCFInputs>(() => mergeAssumptions({}))
+
+  const { outputs, warnings, hasBlockingError } = useMemo(() => {
+    const inputWarnings: ValidationWarning[] = validateInputs(inputs)
+    let computedOutputs: DCFOutputs | null = null
+    let allWarnings = [...inputWarnings]
+
+    try {
+      computedOutputs = runFullDCF(inputs)
+      const outputWarnings = validateOutputs(computedOutputs)
+      allWarnings = [...allWarnings, ...outputWarnings]
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'DCF calculation failed'
+      allWarnings.push({ field: 'calculation', message, severity: 'error' })
+    }
+
+    const hasBlocking = computedOutputs === null || allWarnings.some((w) => w.severity === 'error')
+    return { outputs: computedOutputs, warnings: allWarnings, hasBlockingError: hasBlocking }
+  }, [inputs])
 
   function handleStart(selectedMode: EntryMode) {
     setMode(selectedMode)
@@ -41,8 +63,30 @@ function App() {
             {mode === 'paste' && <TextInputPanel onParsed={handleParsed} />}
             <AssumptionsForm values={inputs} onChange={handleFieldChange} />
           </div>
-          <div className="text-sm text-gray-500">
-            <p>Entry mode: <span className="font-semibold">{mode}</span></p>
+          <div>
+            <p className="text-sm text-gray-500 mb-4">Entry mode: <span className="font-semibold">{mode}</span></p>
+            {warnings.length > 0 && (
+              <div className="mb-4 space-y-1">
+                {warnings.map((w, i) => (
+                  <div
+                    key={i}
+                    className={`px-3 py-2 rounded text-sm border ${
+                      w.severity === 'error'
+                        ? 'border-red-400 bg-red-50 text-red-800'
+                        : 'border-yellow-400 bg-yellow-50 text-yellow-800'
+                    }`}
+                  >
+                    <span className="font-medium">{w.field}:</span> {w.message}
+                  </div>
+                ))}
+              </div>
+            )}
+            {!hasBlockingError && outputs && (
+              <div className="space-y-8">
+                <DcfOutputTable outputs={outputs} inputs={inputs} />
+                <SensitivityTable inputs={inputs} />
+              </div>
+            )}
           </div>
         </div>
       </div>
