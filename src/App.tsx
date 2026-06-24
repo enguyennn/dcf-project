@@ -3,13 +3,14 @@ import Disclaimer from './components/Disclaimer'
 import TextInputPanel from './components/TextInputPanel'
 import FileUpload from './components/FileUpload'
 import AssumptionsForm from './components/AssumptionsForm'
+import SettingsPanel from './components/SettingsPanel'
 import DcfOutputTable from './components/DcfOutputTable'
 import SensitivityTable from './components/SensitivityTable'
 import FollowUpQuestions from './components/FollowUpQuestions'
 import { mergeAssumptions } from './utils/assumptionEngine'
 import { runFullDCF } from './utils/dcfCalculations'
 import { validateInputs, validateOutputs } from './utils/validation'
-import type { DCFInputs, DCFOutputs, FinancialData, ValidationWarning } from './models/financialTypes'
+import type { DCFInputs, DCFOutputs, FinancialData, ValidationWarning, ResearchDataSource } from './models/financialTypes'
 
 /**
  * Fields whose zero/negative value genuinely blocks a valid DCF:
@@ -33,6 +34,7 @@ function App() {
   const [mode, setMode] = useState<EntryMode>('manual')
   const [inputs, setInputs] = useState<DCFInputs>(() => mergeAssumptions({}))
   const [hasPasted, setHasPasted] = useState(false)
+  const [researched, setResearched] = useState<Record<string, ResearchDataSource>>({})
 
   const { outputs, warnings, hasBlockingError } = useMemo(() => {
     const inputWarnings: ValidationWarning[] = validateInputs(inputs)
@@ -80,6 +82,23 @@ function App() {
     })
   }
 
+  function handleResearched(data: Partial<Record<string, ResearchDataSource>>) {
+    for (const [field, source] of Object.entries(data)) {
+      if (source) {
+        handleFieldChange(field, source.value);
+        setResearched((prev) => ({ ...prev, [field]: source }));
+      }
+    }
+  }
+
+  function handleUseManual(field: string) {
+    setResearched((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
   if (view === 'workspace') {
     return (
       <div className="min-h-screen p-8">
@@ -88,7 +107,8 @@ function App() {
           <div>
             {mode === 'paste' && <TextInputPanel onParsed={handleParsed} />}
             {mode === 'upload' && <FileUpload onParsed={handleExcelParsed} />}
-            <AssumptionsForm values={inputs} onChange={handleFieldChange} />
+            <SettingsPanel onResearched={handleResearched} />
+            <AssumptionsForm values={inputs} onChange={handleFieldChange} researched={researched} onUseManual={handleUseManual} />
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-4">Entry mode: <span className="font-semibold">{mode}</span></p>

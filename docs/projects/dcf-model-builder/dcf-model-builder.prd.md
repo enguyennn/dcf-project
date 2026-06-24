@@ -537,7 +537,7 @@ All data flows are client-side:
 
 ---
 
-### EPIC-011: Internet Research Integration (Phase 3)
+### EPIC-011: Internet Research Integration (Phase 3) — DONE
 
 **Goal**: Integrate financial data APIs for auto-populating market data (beta, risk-free rate, ERP) with mandatory source citations and manual-paste fallback.
 
@@ -545,9 +545,9 @@ All data flows are client-side:
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-057 | Design the research data interface and citation model. Define a `ResearchDataSource` type with fields: `value`, `source`, `retrievedAt`, `confidence`. Create a UI pattern for displaying researched vs. manual values with source attribution. | Not Started | src/models/financialTypes.ts |
-| ITEM-058 | Implement client-side API integration (user provides their own API key stored in localStorage, never committed to repo). Add a settings panel for API key entry. Support at least one financial data provider for beta, risk-free rate, and ERP. Implement fetch with timeout and fallback to manual entry per FM-005. | Not Started | src/utils/researchApi.ts, src/components/SettingsPanel.tsx |
-| ITEM-059 | Add source citation display: every auto-populated field shows its source, retrieval date, and a "Use Manual Value Instead" toggle. | Not Started | src/components/AssumptionsForm.tsx |
+| ITEM-057 | Design the research data interface and citation model. Define a `ResearchDataSource` type with fields: `value`, `source`, `retrievedAt`, `confidence`. Create a UI pattern for displaying researched vs. manual values with source attribution. | Done | src/models/financialTypes.ts |
+| ITEM-058 | Implement client-side API integration (user provides their own API key stored in localStorage, never committed to repo). Add a settings panel for API key entry. Support at least one financial data provider for beta, risk-free rate, and ERP. Implement fetch with timeout and fallback to manual entry per FM-005. | Done | src/utils/researchApi.ts, src/components/SettingsPanel.tsx |
+| ITEM-059 | Add source citation display: every auto-populated field shows its source, retrieval date, and a "Use Manual Value Instead" toggle. | Done | src/components/AssumptionsForm.tsx |
 
 ---
 

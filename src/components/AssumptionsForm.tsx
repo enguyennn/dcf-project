@@ -1,9 +1,11 @@
-import type { DCFInputs } from '../models/financialTypes';
+import type { DCFInputs, ResearchDataSource } from '../models/financialTypes';
 import { mergeAssumptions } from '../utils/assumptionEngine';
 
 interface AssumptionsFormProps {
   values: DCFInputs;
   onChange: (field: string, value: number | string) => void;
+  researched?: Record<string, ResearchDataSource>;
+  onUseManual?: (field: string) => void;
 }
 
 interface FieldConfig {
@@ -126,7 +128,7 @@ function FormField({ field, value, onChange }: { field: FieldConfig; value: stri
   );
 }
 
-function AssumptionsForm({ values, onChange }: AssumptionsFormProps) {
+function AssumptionsForm({ values, onChange, researched, onUseManual }: AssumptionsFormProps) {
   function handleReset() {
     const defaults = mergeAssumptions({});
     const allKeys = Object.keys(defaults) as (keyof DCFInputs)[];
@@ -169,7 +171,32 @@ function AssumptionsForm({ values, onChange }: AssumptionsFormProps) {
       </Section>
 
       <Section title="WACC Components">
-        {renderFields(WACC_FIELDS)}
+        {WACC_FIELDS.map((field) => (
+          <div key={field.key}>
+            <FormField
+              field={field}
+              value={getNestedValue(values, field.key)}
+              onChange={onChange}
+            />
+            {researched?.[field.key] && (
+              <div className="mt-1 p-1.5 bg-blue-50 border border-blue-100 rounded text-xs text-gray-500">
+                <span className="inline-block px-1 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium mr-1">Auto-filled</span>
+                {researched[field.key].source} &middot;{' '}
+                {new Date(researched[field.key].retrievedAt).toLocaleDateString()} &middot;{' '}
+                confidence: {researched[field.key].confidence}
+                {onUseManual && (
+                  <button
+                    type="button"
+                    onClick={() => onUseManual(field.key)}
+                    className="ml-2 text-blue-600 underline hover:text-blue-800"
+                  >
+                    Use Manual Value Instead
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       </Section>
 
       <Section title="Terminal Value">

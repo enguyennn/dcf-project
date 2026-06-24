@@ -83,3 +83,10 @@ export interface ValidationWarning {
   message: string;
   severity: 'error' | 'warning';
 }
+
+export interface ResearchDataSource {
+  value: number;
+  source: string;
+  retrievedAt: string;
+  confidence: 'high' | 'medium' | 'low';
+}
