@@ -83,6 +83,7 @@ function App() {
             )}
             {!hasBlockingError && outputs && (
               <div className="space-y-8">
+                <Disclaimer />
                 <DcfOutputTable outputs={outputs} inputs={inputs} />
                 <SensitivityTable inputs={inputs} />
               </div>
