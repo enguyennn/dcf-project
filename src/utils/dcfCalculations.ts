@@ -213,3 +213,26 @@ export function runFullDCF(inputs: DCFInputs): DCFOutputs {
     wacc,
   };
 }
+
+/**
+ * ITEM-064: Generic sensitivity matrix over any two numeric DCFInputs fields.
+ * Outer array indexed by yValues (rows), inner by xValues (cols).
+ */
+export function sensitivityMatrix(
+  base: DCFInputs,
+  xField: keyof DCFInputs,
+  xValues: number[],
+  yField: keyof DCFInputs,
+  yValues: number[],
+): (number | null)[][] {
+  return yValues.map((yVal) =>
+    xValues.map((xVal) => {
+      try {
+        const overridden = { ...base, company: { ...base.company }, [xField]: xVal, [yField]: yVal };
+        return runFullDCF(overridden).impliedSharePrice;
+      } catch {
+        return null;
+      }
+    }),
+  );
+}

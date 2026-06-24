@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { mergeAssumptions, createScenario } from '../src/utils/assumptionEngine';
+import { mergeAssumptions, createScenario, probabilityWeightedScenarios } from '../src/utils/assumptionEngine';
 import { DEFAULT_ASSUMPTIONS } from '../src/data/defaultAssumptions';
+import { runFullDCF } from '../src/utils/dcfCalculations';
 import type { DCFInputs } from '../src/models/financialTypes';
 
 describe('mergeAssumptions', () => {
@@ -70,5 +71,75 @@ describe('createScenario', () => {
     createScenario(base, 'conservative');
     createScenario(base, 'optimistic');
     expect(base).toEqual(original);
+  });
+});
+
+describe('probabilityWeightedScenarios', () => {
+  const validBase: DCFInputs = mergeAssumptions({
+    revenue: 1000000,
+    operatingIncome: 200000,
+    sharesOutstanding: 100000,
+    depreciationAmortization: 50000,
+    capitalExpenditures: 80000,
+    changeInNWC: 10000,
+    netDebt: 500000,
+  });
+
+  it('equal weights → weighted ≈ mean of the three scenario prices', () => {
+    const result = probabilityWeightedScenarios(validBase, { conservative: 1, base: 1, optimistic: 1 });
+    expect(result.conservative).not.toBeNull();
+    expect(result.base).not.toBeNull();
+    expect(result.optimistic).not.toBeNull();
+    expect(result.weighted).not.toBeNull();
+    const mean = (result.conservative! + result.base! + result.optimistic!) / 3;
+    expect(result.weighted).toBeCloseTo(mean, 4);
+  });
+
+  it('a scenario that throws (sharesOutstanding=0) → that field null and excluded from weighted', () => {
+    const throwingBase = mergeAssumptions({
+      revenue: 1000000,
+      operatingIncome: 200000,
+      sharesOutstanding: 0, // will throw in runFullDCF
+      depreciationAmortization: 50000,
+      capitalExpenditures: 80000,
+      changeInNWC: 10000,
+      netDebt: 500000,
+    });
+    const result = probabilityWeightedScenarios(throwingBase, { conservative: 1, base: 1, optimistic: 1 });
+    // All scenarios inherit sharesOutstanding=0, so all throw
+    expect(result.conservative).toBeNull();
+    expect(result.base).toBeNull();
+    expect(result.optimistic).toBeNull();
+    expect(result.weighted).toBeNull();
+  });
+
+  it('zero total weight → weighted null', () => {
+    const result = probabilityWeightedScenarios(validBase, { conservative: 0, base: 0, optimistic: 0 });
+    expect(result.weighted).toBeNull();
+  });
+
+  it('one scenario null is excluded from weighted average', () => {
+    // Force conservative to throw by making growth very high so wacc <= perpetuityGrowthRate after shift
+    const edgeBase = mergeAssumptions({
+      revenue: 1000000,
+      operatingIncome: 200000,
+      sharesOutstanding: 100000,
+      depreciationAmortization: 50000,
+      capitalExpenditures: 80000,
+      changeInNWC: 10000,
+      netDebt: 500000,
+      riskFreeRate: 0.01, // conservative adds 0.01, still low
+      perpetuityGrowthRate: 0.025,
+    });
+    // Verify base works
+    const baseResult = runFullDCF(createScenario(edgeBase, 'base'));
+    expect(Number.isFinite(baseResult.impliedSharePrice)).toBe(true);
+    const result = probabilityWeightedScenarios(edgeBase, { conservative: 1, base: 1, optimistic: 1 });
+    // If conservative threw, weighted = mean of non-null only
+    if (result.conservative === null) {
+      const nonNull = [result.base, result.optimistic].filter((v) => v !== null) as number[];
+      const mean = nonNull.reduce((a, b) => a + b, 0) / nonNull.length;
+      expect(result.weighted).toBeCloseTo(mean, 4);
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import Disclaimer from './components/Disclaimer'
 import TextInputPanel from './components/TextInputPanel'
 import FileUpload from './components/FileUpload'
@@ -6,11 +6,15 @@ import AssumptionsForm from './components/AssumptionsForm'
 import SettingsPanel from './components/SettingsPanel'
 import DcfOutputTable from './components/DcfOutputTable'
 import SensitivityTable from './components/SensitivityTable'
+import Comparables from './components/Comparables'
 import FollowUpQuestions from './components/FollowUpQuestions'
-import { mergeAssumptions } from './utils/assumptionEngine'
+import { mergeAssumptions, probabilityWeightedScenarios } from './utils/assumptionEngine'
 import { runFullDCF } from './utils/dcfCalculations'
+import { generateCSV, downloadCSV } from './utils/exportResults'
 import { validateInputs, validateOutputs } from './utils/validation'
 import type { DCFInputs, DCFOutputs, FinancialData, ValidationWarning, ResearchDataSource } from './models/financialTypes'
+
+const Charts = lazy(() => import('./components/Charts'))
 
 /**
  * Fields whose zero/negative value genuinely blocks a valid DCF:
@@ -28,6 +32,7 @@ const REQUIRED_FIELDS: (keyof FinancialData)[] = ['revenue', 'sharesOutstanding'
 
 type View = 'landing' | 'workspace'
 type EntryMode = 'manual' | 'paste' | 'upload'
+type OutputTab = 'valuation' | 'charts' | 'comparables'
 
 function App() {
   const [view, setView] = useState<View>('landing')
@@ -35,7 +40,8 @@ function App() {
   const [inputs, setInputs] = useState<DCFInputs>(() => mergeAssumptions({}))
   const [hasPasted, setHasPasted] = useState(false)
   const [researched, setResearched] = useState<Record<string, ResearchDataSource>>({})
-
+  const [outputTab, setOutputTab] = useState<OutputTab>('valuation')
+  const [weights, setWeights] = useState({ conservative: 0.25, base: 0.5, optimistic: 0.25 })
   const { outputs, warnings, hasBlockingError } = useMemo(() => {
     const inputWarnings: ValidationWarning[] = validateInputs(inputs)
     let computedOutputs: DCFOutputs | null = null
@@ -135,10 +141,88 @@ function App() {
               </div>
             )}
             {!hasBlockingError && outputs && (
-              <div className="space-y-8">
-                <Disclaimer />
-                <DcfOutputTable outputs={outputs} inputs={inputs} />
-                <SensitivityTable inputs={inputs} />
+              <div className="space-y-4">
+                {/* Tab strip */}
+                <div className="flex border-b border-gray-300">
+                  {(['valuation', 'charts', 'comparables'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setOutputTab(tab)}
+                      className={`px-4 py-2 text-sm font-medium capitalize ${
+                        outputTab === tab
+                          ? 'border-b-2 border-blue-600 text-blue-600'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Valuation tab */}
+                {outputTab === 'valuation' && (
+                  <div className="space-y-8">
+                    <Disclaimer />
+                    <DcfOutputTable outputs={outputs} inputs={inputs} />
+                    <SensitivityTable inputs={inputs} />
+
+                    {/* Probability-weighted scenarios (ITEM-062) */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Probability-Weighted Scenarios</h3>
+                      <div className="flex gap-4 mb-3">
+                        {(['conservative', 'base', 'optimistic'] as const).map((s) => (
+                          <label key={s} className="text-sm capitalize">
+                            {s}:
+                            <input
+                              type="number"
+                              step="0.05"
+                              min="0"
+                              max="1"
+                              value={weights[s]}
+                              onChange={(e) => setWeights((w) => ({ ...w, [s]: parseFloat(e.target.value) || 0 }))}
+                              className="ml-1 w-16 border rounded px-2 py-1 text-sm"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      {(() => {
+                        const result = probabilityWeightedScenarios(inputs, weights)
+                        const fmtP = (n: number | null) =>
+                          n === null ? 'N/A' : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        return (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div className="p-3 bg-gray-50 rounded border"><div className="text-gray-500">Conservative</div><div className="font-semibold">{fmtP(result.conservative)}</div></div>
+                            <div className="p-3 bg-gray-50 rounded border"><div className="text-gray-500">Base</div><div className="font-semibold">{fmtP(result.base)}</div></div>
+                            <div className="p-3 bg-gray-50 rounded border"><div className="text-gray-500">Optimistic</div><div className="font-semibold">{fmtP(result.optimistic)}</div></div>
+                            <div className="p-3 bg-blue-50 rounded border border-blue-200"><div className="text-blue-600">Weighted Price</div><div className="font-bold">{fmtP(result.weighted)}</div></div>
+                          </div>
+                        )
+                      })()}
+                    </div>
+
+                    {/* Download CSV button (ITEM-063) */}
+                    <button
+                      type="button"
+                      onClick={() => downloadCSV('dcf-results.csv', generateCSV(inputs, outputs))}
+                      className="px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded hover:bg-gray-900 transition-colors"
+                    >
+                      Download Results
+                    </button>
+                  </div>
+                )}
+
+                {/* Charts tab (lazy-loaded) */}
+                {outputTab === 'charts' && (
+                  <Suspense fallback={<div className="text-sm text-gray-500 py-8 text-center">Loading charts…</div>}>
+                    <Charts inputs={inputs} outputs={outputs} />
+                  </Suspense>
+                )}
+
+                {/* Comparables tab */}
+                {outputTab === 'comparables' && (
+                  <Comparables inputs={inputs} outputs={outputs} />
+                )}
               </div>
             )}
           </div>

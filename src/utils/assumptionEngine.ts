@@ -1,5 +1,6 @@
 import type { DCFInputs } from '../models/financialTypes';
 import { DEFAULT_ASSUMPTIONS } from '../data/defaultAssumptions';
+import { runFullDCF } from './dcfCalculations';
 
 /**
  * Complete base DCFInputs built from DEFAULT_ASSUMPTIONS plus neutral defaults
@@ -72,5 +73,45 @@ export function createScenario(
     company: { ...base.company },
     revenueGrowthRate: base.revenueGrowthRate + 0.02,
     riskFreeRate: base.riskFreeRate - 0.01, // WACC -1% via riskFreeRate lever
+  };
+}
+
+/**
+ * ITEM-062: Probability-weighted scenario analysis.
+ * Runs conservative/base/optimistic DCFs and returns a weighted implied share price.
+ */
+export function probabilityWeightedScenarios(
+  base: DCFInputs,
+  weights: { conservative: number; base: number; optimistic: number },
+): { conservative: number | null; base: number | null; optimistic: number | null; weighted: number | null } {
+  const scenarios = ['conservative', 'base', 'optimistic'] as const;
+  const prices: Record<string, number | null> = {};
+
+  for (const name of scenarios) {
+    try {
+      const scenarioInputs = createScenario(base, name);
+      const result = runFullDCF(scenarioInputs);
+      prices[name] = result.impliedSharePrice;
+    } catch {
+      prices[name] = null;
+    }
+  }
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+  for (const name of scenarios) {
+    if (prices[name] !== null) {
+      weightedSum += weights[name] * prices[name]!;
+      totalWeight += weights[name];
+    }
+  }
+
+  const weighted = totalWeight > 0 ? weightedSum / totalWeight : null;
+
+  return {
+    conservative: prices.conservative,
+    base: prices.base,
+    optimistic: prices.optimistic,
+    weighted,
   };
 }

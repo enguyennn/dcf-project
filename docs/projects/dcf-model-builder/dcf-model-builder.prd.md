@@ -551,7 +551,7 @@ All data flows are client-side:
 
 ---
 
-### EPIC-012: Advanced Features — Charts, Comparables, Scenarios, Export (Phase 4)
+### EPIC-012: Advanced Features — Charts, Comparables, Scenarios, Export (Phase 4) — DONE
 
 **Goal**: Add Recharts visualizations, comparable company analysis, advanced probability-weighted scenarios, and CSV/spreadsheet export.
 
@@ -559,11 +559,11 @@ All data flows are client-side:
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-060 | Install Recharts: `npm install recharts`. Implement `src/components/Charts.tsx` with: (1) waterfall chart showing EV buildup (PV of FCFFs + PV of TV), (2) sensitivity heatmap, (3) revenue/FCFF projection line chart. Make charts responsive and accessible (aria-labels, keyboard navigable). | Not Started | src/components/Charts.tsx |
-| ITEM-061 | Implement comparable company analysis: allow users to input peer company multiples (EV/EBITDA, P/E) and display how the DCF-implied multiple compares. Add a "Comparables" tab to the output view. | Not Started | src/components/Comparables.tsx |
-| ITEM-062 | Implement advanced scenarios with probability weighting: allow users to assign probabilities to Conservative/Base/Optimistic scenarios and compute a probability-weighted implied share price. | Not Started | src/utils/assumptionEngine.ts |
-| ITEM-063 | Implement CSV/spreadsheet export: a "Download Results" button that generates a CSV file containing all input assumptions, year-by-year projections, and summary valuation metrics using the Blob API. Implement copy-to-clipboard fallback per FM-007. | Not Started | src/utils/exportResults.ts |
-| ITEM-064 | Implement user-selectable sensitivity axes: allow users to pick any two numeric input variables for the sensitivity matrix (not just WACC × growth rate). | Not Started | src/components/SensitivityTable.tsx |
+| ITEM-060 | Install Recharts: `npm install recharts`. Implement `src/components/Charts.tsx` with: (1) waterfall chart showing EV buildup (PV of FCFFs + PV of TV), (2) sensitivity heatmap, (3) revenue/FCFF projection line chart. Make charts responsive and accessible (aria-labels, keyboard navigable). | Done | src/components/Charts.tsx |
+| ITEM-061 | Implement comparable company analysis: allow users to input peer company multiples (EV/EBITDA, P/E) and display how the DCF-implied multiple compares. Add a "Comparables" tab to the output view. | Done | src/components/Comparables.tsx |
+| ITEM-062 | Implement advanced scenarios with probability weighting: allow users to assign probabilities to Conservative/Base/Optimistic scenarios and compute a probability-weighted implied share price. | Done | src/utils/assumptionEngine.ts |
+| ITEM-063 | Implement CSV/spreadsheet export: a "Download Results" button that generates a CSV file containing all input assumptions, year-by-year projections, and summary valuation metrics using the Blob API. Implement copy-to-clipboard fallback per FM-007. | Done | src/utils/exportResults.ts |
+| ITEM-064 | Implement user-selectable sensitivity axes: allow users to pick any two numeric input variables for the sensitivity matrix (not just WACC × growth rate). | Done | src/components/SensitivityTable.tsx, src/utils/dcfCalculations.ts |
 
 ---
 

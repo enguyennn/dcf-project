@@ -12,6 +12,7 @@ import {
   equityValue,
   impliedSharePrice,
   sensitivityAnalysis,
+  sensitivityMatrix,
   runFullDCF,
 } from '../src/utils/dcfCalculations';
 import type { DCFInputs } from '../src/models/financialTypes';
@@ -366,5 +367,77 @@ describe('runFullDCF', () => {
     expect(result.terminalValue).toBe(3000000);
     expect(result.enterpriseValue).toBeGreaterThan(0);
     expect(result.impliedSharePrice).toBeGreaterThan(0);
+  });
+});
+
+describe('sensitivityMatrix', () => {
+  const base: DCFInputs = {
+    revenue: 1000000,
+    operatingIncome: 200000,
+    taxRate: 0.21,
+    depreciationAmortization: 30000,
+    capitalExpenditures: 40000,
+    changeInNWC: 10000,
+    netDebt: 500000,
+    sharesOutstanding: 100000,
+    riskFreeRate: 0.04,
+    beta: 1.2,
+    equityRiskPremium: 0.055,
+    costOfDebt: 0.05,
+    debtToEquityRatio: 0.5,
+    perpetuityGrowthRate: 0.025,
+    exitMultiple: 10,
+    finalYearEBITDA: 300000,
+    method: 'perpetuity',
+    revenueGrowthRate: 0.10,
+    operatingMarginRate: 0.20,
+    dAndARate: 0.03,
+    capExRate: 0.04,
+    nwcRate: 0.05,
+    projectionYears: 3,
+    company: { companyName: 'Test Corp', currency: 'USD' },
+  };
+
+  it('returns finite numbers for a known 2×2 grid', () => {
+    const result = sensitivityMatrix(
+      base,
+      'revenueGrowthRate',
+      [0.08, 0.12],
+      'operatingMarginRate',
+      [0.18, 0.22],
+    );
+    expect(result).toHaveLength(2); // yValues.length rows
+    expect(result[0]).toHaveLength(2); // xValues.length cols
+    for (const row of result) {
+      for (const cell of row) {
+        expect(cell).not.toBeNull();
+        expect(Number.isFinite(cell)).toBe(true);
+      }
+    }
+  });
+
+  it('yields null when runFullDCF throws (perpetuityGrowthRate >= wacc)', () => {
+    // Set perpetuityGrowthRate very high so it exceeds WACC
+    const result = sensitivityMatrix(
+      base,
+      'perpetuityGrowthRate',
+      [0.02, 0.50], // 0.50 will exceed any reasonable WACC
+      'revenueGrowthRate',
+      [0.10],
+    );
+    expect(result).toHaveLength(1); // 1 yValue
+    expect(result[0]).toHaveLength(2); // 2 xValues
+    expect(result[0][0]).not.toBeNull(); // 0.02 should work
+    expect(result[0][1]).toBeNull(); // 0.50 exceeds WACC → throws → null
+  });
+
+  it('matrix dimensions = [yValues.length][xValues.length]', () => {
+    const xValues = [0.05, 0.10, 0.15];
+    const yValues = [0.15, 0.20, 0.25, 0.30];
+    const result = sensitivityMatrix(base, 'revenueGrowthRate', xValues, 'operatingMarginRate', yValues);
+    expect(result).toHaveLength(4); // yValues.length
+    for (const row of result) {
+      expect(row).toHaveLength(3); // xValues.length
+    }
   });
 });
