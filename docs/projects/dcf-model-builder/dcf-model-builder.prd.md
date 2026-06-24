@@ -522,7 +522,7 @@ All data flows are client-side:
 
 ---
 
-### EPIC-010: Excel File Upload and Parsing (Phase 2)
+### EPIC-010: Excel File Upload and Parsing — DONE
 
 **Goal**: Add client-side Excel/CSV file upload and parsing using SheetJS/xlsx. Map uploaded columns to the standardized FinancialData schema with fuzzy alias matching.
 
@@ -530,10 +530,10 @@ All data flows are client-side:
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-053 | Install SheetJS: `npm install xlsx`. Create `src/utils/parseExcel.ts` with a `parseExcel` function: accepts a `File` object, reads it via `FileReader` + `XLSX.read()`, extracts the first sheet, maps column headers to schema fields using a fuzzy alias dictionary (same aliases as parsePlainText), returns `{ parsed: Partial<FinancialData>[], errors: string[] }` (array for multi-year historical data). Handle parse errors gracefully per FM-001. | Not Started | src/utils/parseExcel.ts |
-| ITEM-054 | Create `src/components/FileUpload.tsx`: a drag-and-drop file upload zone (Tailwind: dashed border, hover highlight) accepting `.xlsx` and `.csv` files. On drop/select, calls `parseExcel(file)` and passes results to parent via `onParsed` callback. Shows a loading spinner during parsing and error messages on failure. | Not Started | src/components/FileUpload.tsx |
-| ITEM-055 | Wire FileUpload into the workspace view. Add a third entry point on the landing page: "Upload Excel File". Integrate parsed Excel data into the existing state management and calculation pipeline. | Not Started | src/App.tsx, src/components/FileUpload.tsx |
-| ITEM-056 | Write unit tests for `parseExcel.ts` (mock File/FileReader) and manual tests with sample Excel files containing financial data in various formats. | Not Started | tests/parseExcel.test.ts |
+| ITEM-053 | Install SheetJS: `npm install xlsx`. Create `src/utils/parseExcel.ts` with a `parseExcel` function: accepts a `File` object, reads it via `FileReader` + `XLSX.read()`, extracts the first sheet, maps column headers to schema fields using a fuzzy alias dictionary (same aliases as parsePlainText), returns `{ parsed: Partial<FinancialData>[], errors: string[] }` (array for multi-year historical data). Handle parse errors gracefully per FM-001. | Done | src/utils/parseExcel.ts |
+| ITEM-054 | Create `src/components/FileUpload.tsx`: a drag-and-drop file upload zone (Tailwind: dashed border, hover highlight) accepting `.xlsx` and `.csv` files. On drop/select, calls `parseExcel(file)` and passes results to parent via `onParsed` callback. Shows a loading spinner during parsing and error messages on failure. | Done | src/components/FileUpload.tsx |
+| ITEM-055 | Wire FileUpload into the workspace view. Add a third entry point on the landing page: "Upload Excel File". Integrate parsed Excel data into the existing state management and calculation pipeline. | Done | src/App.tsx, src/components/FileUpload.tsx |
+| ITEM-056 | Write unit tests for `parseExcel.ts` (mock File/FileReader) and manual tests with sample Excel files containing financial data in various formats. | Done | tests/parseExcel.test.ts |
 
 ---
 

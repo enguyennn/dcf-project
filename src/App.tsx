@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import Disclaimer from './components/Disclaimer'
 import TextInputPanel from './components/TextInputPanel'
+import FileUpload from './components/FileUpload'
 import AssumptionsForm from './components/AssumptionsForm'
 import DcfOutputTable from './components/DcfOutputTable'
 import SensitivityTable from './components/SensitivityTable'
@@ -25,7 +26,7 @@ import type { DCFInputs, DCFOutputs, FinancialData, ValidationWarning } from './
 const REQUIRED_FIELDS: (keyof FinancialData)[] = ['revenue', 'sharesOutstanding']
 
 type View = 'landing' | 'workspace'
-type EntryMode = 'manual' | 'paste'
+type EntryMode = 'manual' | 'paste' | 'upload'
 
 function App() {
   const [view, setView] = useState<View>('landing')
@@ -63,6 +64,12 @@ function App() {
     setInputs((prev) => mergeAssumptions({ ...prev, ...parsed }))
   }
 
+  function handleExcelParsed(rows: Partial<FinancialData>[]) {
+    if (rows.length === 0) return
+    setHasPasted(true)
+    setInputs((prev) => mergeAssumptions({ ...prev, ...rows[0] }))
+  }
+
   function handleFieldChange(field: string, value: number | string) {
     setInputs((prev) => {
       if (field.startsWith('company.')) {
@@ -80,6 +87,7 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             {mode === 'paste' && <TextInputPanel onParsed={handleParsed} />}
+            {mode === 'upload' && <FileUpload onParsed={handleExcelParsed} />}
             <AssumptionsForm values={inputs} onChange={handleFieldChange} />
           </div>
           <div>
@@ -143,6 +151,13 @@ function App() {
             className="px-6 py-3 bg-green-600 text-white font-medium rounded hover:bg-green-700 transition-colors"
           >
             Paste Financial Data
+          </button>
+          <button
+            type="button"
+            onClick={() => handleStart('upload')}
+            className="px-6 py-3 bg-purple-600 text-white font-medium rounded hover:bg-purple-700 transition-colors"
+          >
+            Upload Excel File
           </button>
         </div>
       </div>

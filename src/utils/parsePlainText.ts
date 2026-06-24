@@ -13,7 +13,7 @@ const ALIASES: ReadonlyArray<[RegExp, FieldKey]> = [
   [/^(?:shares\s*outstanding|shares|diluted\s*shares)$/i, 'sharesOutstanding'],
 ];
 
-function matchLabel(label: string): FieldKey | undefined {
+export function matchLabel(label: string): FieldKey | undefined {
   const trimmed = label.trim();
   for (const [regex, field] of ALIASES) {
     if (regex.test(trimmed)) return field;
@@ -21,7 +21,7 @@ function matchLabel(label: string): FieldKey | undefined {
   return undefined;
 }
 
-function parseNumericValue(raw: string): number | undefined {
+export function parseNumericValue(raw: string): number | undefined {
   let str = raw.trim().replace(/,/g, '');
   let multiplier = 1;
 
