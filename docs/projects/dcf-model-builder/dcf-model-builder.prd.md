@@ -444,7 +444,7 @@ All data flows are client-side:
 
 ---
 
-### EPIC-005: UI Shell, Landing Page, and Disclaimer Component
+### EPIC-005: UI Shell, Landing Page, and Disclaimer Component (DONE)
 
 **Goal**: Build the application shell with routing between landing page and workspace view. Implement the Disclaimer component and landing page per FR-011 and FR-013.
 
@@ -452,10 +452,10 @@ All data flows are client-side:
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-030 | Create `src/components/Disclaimer.tsx`: a functional React component that renders a visually distinct bordered box (Tailwind: `border-2 border-yellow-500 bg-yellow-50 p-4 rounded`) with a warning icon (⚠️ emoji or SVG) and the text: "For educational and analytical purposes only. Not investment advice. Results are entirely dependent on user-provided assumptions and may not reflect actual company value." The component accepts a `minimizable?: boolean` prop — when true, a toggle button allows collapsing to a single line, but the disclaimer remains accessible (never fully dismissed). | Not Started | src/components/Disclaimer.tsx |
-| ITEM-031 | Update `src/App.tsx` to implement a simple state-based "routing": a `view` state variable with values `'landing'` or `'workspace'`. When `view === 'landing'`, render the landing page content. When `view === 'workspace'`, render the workspace layout (placeholder for now). Use `useState('landing')` to start on the landing page. | Not Started | src/App.tsx |
-| ITEM-032 | Implement the landing page content in `App.tsx` (or a separate `LandingPage` component): display the app title "DCF Model Builder", a brief 2–3 sentence description of DCF valuation, the Disclaimer component, and two buttons: "Enter Assumptions Manually" (sets view to 'workspace' with mode='manual') and "Paste Financial Data" (sets view to 'workspace' with mode='paste'). Style with Tailwind utilities for a clean, centered layout. | Not Started | src/App.tsx, src/components/Disclaimer.tsx |
-| ITEM-033 | Run `npm run dev`, open the browser, and verify: landing page displays correctly with title, description, disclaimer, and two buttons. Clicking either button transitions to the workspace view (placeholder content is fine). | Not Started | src/App.tsx |
+| ITEM-030 | Create `src/components/Disclaimer.tsx`: a functional React component that renders a visually distinct bordered box (Tailwind: `border-2 border-yellow-500 bg-yellow-50 p-4 rounded`) with a warning icon (⚠️ emoji or SVG) and the text: "For educational and analytical purposes only. Not investment advice. Results are entirely dependent on user-provided assumptions and may not reflect actual company value." The component accepts a `minimizable?: boolean` prop — when true, a toggle button allows collapsing to a single line, but the disclaimer remains accessible (never fully dismissed). | Done | src/components/Disclaimer.tsx |
+| ITEM-031 | Update `src/App.tsx` to implement a simple state-based "routing": a `view` state variable with values `'landing'` or `'workspace'`. When `view === 'landing'`, render the landing page content. When `view === 'workspace'`, render the workspace layout (placeholder for now). Use `useState('landing')` to start on the landing page. | Done | src/App.tsx |
+| ITEM-032 | Implement the landing page content in `App.tsx` (or a separate `LandingPage` component): display the app title "DCF Model Builder", a brief 2–3 sentence description of DCF valuation, the Disclaimer component, and two buttons: "Enter Assumptions Manually" (sets view to 'workspace' with mode='manual') and "Paste Financial Data" (sets view to 'workspace' with mode='paste'). Style with Tailwind utilities for a clean, centered layout. | Done | src/App.tsx, src/components/Disclaimer.tsx |
+| ITEM-033 | Run `npm run dev`, open the browser, and verify: landing page displays correctly with title, description, disclaimer, and two buttons. Clicking either button transitions to the workspace view (placeholder content is fine). | Done | src/App.tsx |
 
 ---
 
