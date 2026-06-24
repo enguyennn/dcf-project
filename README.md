@@ -30,9 +30,11 @@ npm run dev
 
 ## Deployment
 
-The site deploys automatically to GitHub Pages via GitHub Actions on every push to `main`. No manual deployment steps are required.
+The site deploys automatically to [Azure Static Web Apps](https://learn.microsoft.com/azure/static-web-apps/) via GitHub Actions on every push to `main`. Pull requests get a temporary preview environment automatically.
 
-**Live URL**: https://t-ethnguyen_microsoft.github.io/DCF-Project/
+**Setup (one-time):** Create an Azure Static Web Apps resource linked to this repo. Azure adds the `AZURE_STATIC_WEB_APPS_API_TOKEN` deployment-token secret to the repo automatically. The build config is `app_location: "/"`, `output_location: "dist"`. Client-side routing falls back to `index.html` via [`public/staticwebapp.config.json`](public/staticwebapp.config.json).
+
+**Live URL**: assigned by Azure when the Static Web App is created (e.g. `https://<name>.azurestaticapps.net`).
 
 ## Architecture
 
