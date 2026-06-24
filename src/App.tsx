@@ -4,10 +4,25 @@ import TextInputPanel from './components/TextInputPanel'
 import AssumptionsForm from './components/AssumptionsForm'
 import DcfOutputTable from './components/DcfOutputTable'
 import SensitivityTable from './components/SensitivityTable'
+import FollowUpQuestions from './components/FollowUpQuestions'
 import { mergeAssumptions } from './utils/assumptionEngine'
 import { runFullDCF } from './utils/dcfCalculations'
 import { validateInputs, validateOutputs } from './utils/validation'
 import type { DCFInputs, DCFOutputs, FinancialData, ValidationWarning } from './models/financialTypes'
+
+/**
+ * Fields whose zero/negative value genuinely blocks a valid DCF:
+ * - sharesOutstanding <= 0 causes runFullDCF to throw (cannot compute share price).
+ * - revenue <= 0 produces a degenerate all-zero model (meaningless output).
+ *
+ * Other FinancialData fields are rate-derived inside runFullDCF (operatingIncome,
+ * depreciationAmortization, capitalExpenditures, changeInNWC use their *Rate
+ * counterparts) or are legitimately valid at 0 (netDebt = no net debt).
+ *
+ * Because mergeAssumptions fills all FinancialData numerics with 0, a literal
+ * undefined/null check would never fire. We treat <= 0 as "missing".
+ */
+const REQUIRED_FIELDS: (keyof FinancialData)[] = ['revenue', 'sharesOutstanding']
 
 type View = 'landing' | 'workspace'
 type EntryMode = 'manual' | 'paste'
@@ -16,6 +31,7 @@ function App() {
   const [view, setView] = useState<View>('landing')
   const [mode, setMode] = useState<EntryMode>('manual')
   const [inputs, setInputs] = useState<DCFInputs>(() => mergeAssumptions({}))
+  const [hasPasted, setHasPasted] = useState(false)
 
   const { outputs, warnings, hasBlockingError } = useMemo(() => {
     const inputWarnings: ValidationWarning[] = validateInputs(inputs)
@@ -35,12 +51,15 @@ function App() {
     return { outputs: computedOutputs, warnings: allWarnings, hasBlockingError: hasBlocking }
   }, [inputs])
 
+  const missingFields = REQUIRED_FIELDS.filter((f) => (inputs[f] ?? 0) <= 0)
+
   function handleStart(selectedMode: EntryMode) {
     setMode(selectedMode)
     setView('workspace')
   }
 
   function handleParsed(parsed: Partial<FinancialData>) {
+    setHasPasted(true)
     setInputs((prev) => mergeAssumptions({ ...prev, ...parsed }))
   }
 
@@ -65,6 +84,12 @@ function App() {
           </div>
           <div>
             <p className="text-sm text-gray-500 mb-4">Entry mode: <span className="font-semibold">{mode}</span></p>
+            {hasPasted && missingFields.length > 0 && (
+              <FollowUpQuestions
+                missingFields={missingFields}
+                onFieldSubmit={(field, value) => handleFieldChange(field, value)}
+              />
+            )}
             {warnings.length > 0 && (
               <div className="mb-4 space-y-1">
                 {warnings.map((w, i) => (

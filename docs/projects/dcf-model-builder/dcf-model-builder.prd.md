@@ -493,7 +493,7 @@ All data flows are client-side:
 
 ---
 
-### EPIC-008: Follow-Up Questions for Missing Fields
+### EPIC-008: Follow-Up Questions for Missing Fields (DONE)
 
 **Goal**: Implement the missing-field detection and follow-up question panel so that incomplete data (from text paste) prompts the user for the specific missing values before calculation proceeds.
 
@@ -501,9 +501,9 @@ All data flows are client-side:
 
 | Task | Description | Status | Relevant Files |
 |------|-------------|--------|----------------|
-| ITEM-046 | Create `src/components/FollowUpQuestions.tsx`: accepts `missingFields: string[]` and `onFieldSubmit: (field: string, value: number) => void`. For each missing field, render a labeled input with a brief explanation of what the field is and why it's needed (use a lookup map of field → description). A "Submit" button for each field or a single "Submit All" button. When values are submitted, calls `onFieldSubmit` for each. | Not Started | src/components/FollowUpQuestions.tsx |
-| ITEM-047 | Add missing-field detection logic in `App.tsx`: after text parsing or on any state change, check which required `FinancialData` fields are still undefined/null. If any required fields are missing and the user has attempted a calculation (or pasted text), show the FollowUpQuestions component with the missing field names. When the user submits values, merge them into state. Once all required fields are populated, the calculation proceeds automatically (via the existing `useMemo`/`useEffect` wiring). | Not Started | src/App.tsx, src/components/FollowUpQuestions.tsx |
-| ITEM-048 | Manually test: paste text with only "Revenue: 1000000" (many fields missing). Verify the FollowUpQuestions panel appears listing missing fields. Enter values for each missing field. Verify calculation output appears once all required fields are populated. | Not Started | src/App.tsx |
+| ITEM-046 | Create `src/components/FollowUpQuestions.tsx`: accepts `missingFields: string[]` and `onFieldSubmit: (field: string, value: number) => void`. For each missing field, render a labeled input with a brief explanation of what the field is and why it's needed (use a lookup map of field → description). A "Submit" button for each field or a single "Submit All" button. When values are submitted, calls `onFieldSubmit` for each. | Done | src/components/FollowUpQuestions.tsx |
+| ITEM-047 | Add missing-field detection logic in `App.tsx`: after text parsing or on any state change, check which required `FinancialData` fields are still undefined/null. If any required fields are missing and the user has attempted a calculation (or pasted text), show the FollowUpQuestions component with the missing field names. When the user submits values, merge them into state. Once all required fields are populated, the calculation proceeds automatically (via the existing `useMemo`/`useEffect` wiring). | Done | src/App.tsx, src/components/FollowUpQuestions.tsx |
+| ITEM-048 | Manually test: paste text with only "Revenue: 1000000" (many fields missing). Verify the FollowUpQuestions panel appears listing missing fields. Enter values for each missing field. Verify calculation output appears once all required fields are populated. | Done | src/App.tsx |
 
 ---
 
