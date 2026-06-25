@@ -18,6 +18,17 @@ function Charts({ inputs, outputs }: ChartsProps) {
   }))
   evData.push({ name: 'Terminal', pvFCFF: Math.round(outputs.pvTerminalValue) })
 
+  // Chart 4 (ITEM-038): Valuation Waterfall — sum(pvFCFF) + pvTV = EV; EV - netDebt = equityValue
+  const sumPvFCFF = outputs.pvFCFF.reduce((a, b) => a + b, 0)
+  const netDebt = inputs.netDebt ?? 0
+  const waterfallData = [
+    { name: 'PV of FCFF', value: Math.round(sumPvFCFF) },
+    { name: 'PV Terminal Value', value: Math.round(outputs.pvTerminalValue) },
+    { name: 'Enterprise Value', value: Math.round(outputs.enterpriseValue) },
+    { name: 'Less: Net Debt', value: Math.round(-netDebt) },
+    { name: 'Equity Value', value: Math.round(outputs.equityValue) },
+  ]
+
   // Chart 2: Sensitivity heatmap as colored HTML table (simple approach — more
   // accessible and lighter than Recharts scatter)
   const heatXValues = [
@@ -121,6 +132,20 @@ function Charts({ inputs, outputs }: ChartsProps) {
             <Line type="monotone" dataKey="Revenue" stroke="#3b82f6" />
             <Line type="monotone" dataKey="FCFF" stroke="#10b981" />
           </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Chart 4: Valuation Waterfall — ITEM-038 */}
+      <div role="img" aria-label="Valuation breakdown waterfall from PV of FCFF through equity value">
+        <h3 className="text-lg font-semibold mb-2">Valuation Breakdown Waterfall</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={waterfallData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="value" fill="#6366f1" name="Value" />
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </div>

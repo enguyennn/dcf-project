@@ -36,7 +36,7 @@ export default function ReviewStep({ inputs, inputMode, warnings, dispatch, onCa
         Fine-tune all assumptions before running the DCF calculation.
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         <div>
           <AssumptionsForm values={inputs} onChange={handleFieldChange} />
         </div>
@@ -69,7 +69,7 @@ export default function ReviewStep({ inputs, inputMode, warnings, dispatch, onCa
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button
           type="button"
           onClick={handleBack}

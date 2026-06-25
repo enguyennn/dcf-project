@@ -41,9 +41,23 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <h1 className="text-3xl font-bold text-center mb-2">DCF Model Builder</h1>
-      <WorkflowStepIndicator currentStep={state.step} onNavigate={handleNavigate} />
+    <div className="min-h-screen">
+      {/* Persistent navigation bar — ITEM-036 */}
+      <nav className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm px-4 py-3">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center gap-2">
+          <h1 className="text-lg font-bold whitespace-nowrap sm:mr-auto">DCF Model Builder</h1>
+          <WorkflowStepIndicator currentStep={state.step} onNavigate={handleNavigate} />
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'RESET' })}
+            className="ml-auto px-3 py-1.5 text-sm border border-red-300 text-red-700 font-medium rounded hover:bg-red-50 transition-colors"
+          >
+            Start Over
+          </button>
+        </div>
+      </nav>
+
+      <div className="p-4 sm:p-8">
 
       {state.step === 'input' && (
         <InputStep
@@ -98,6 +112,7 @@ function App() {
           </button>
         </div>
       )}
+      </div>
     </div>
   )
 }

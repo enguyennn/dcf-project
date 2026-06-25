@@ -28,7 +28,7 @@ export default function ResultsStep({ inputs, outputs, dispatch }: ResultsStepPr
       <h2 className="text-2xl font-bold">Step 4: Valuation Results</h2>
 
       {/* Actions at top */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <button
           type="button"
           onClick={() => dispatch({ type: 'GOTO_STEP', step: 'review' })}
@@ -43,6 +43,28 @@ export default function ResultsStep({ inputs, outputs, dispatch }: ResultsStepPr
         >
           Start Over
         </button>
+      </div>
+
+      {/* Key output highlight cards — ITEM-038 */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg text-center">
+          <div className="text-sm text-blue-600 font-medium">Enterprise Value</div>
+          <div className="text-2xl font-bold text-blue-900 mt-1">
+            {outputs.enterpriseValue.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+          </div>
+        </div>
+        <div className="p-6 bg-green-50 border border-green-200 rounded-lg text-center">
+          <div className="text-sm text-green-600 font-medium">Equity Value</div>
+          <div className="text-2xl font-bold text-green-900 mt-1">
+            {outputs.equityValue.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+          </div>
+        </div>
+        <div className="p-6 bg-purple-50 border border-purple-200 rounded-lg text-center">
+          <div className="text-sm text-purple-600 font-medium">Implied Share Price</div>
+          <div className="text-2xl font-bold text-purple-900 mt-1">
+            {outputs.impliedSharePrice.toLocaleString(undefined, { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        </div>
       </div>
 
       {/* Tab strip */}
@@ -73,7 +95,7 @@ export default function ResultsStep({ inputs, outputs, dispatch }: ResultsStepPr
           {/* Probability-weighted scenarios */}
           <div>
             <h3 className="text-lg font-semibold mb-2">Probability-Weighted Scenarios</h3>
-            <div className="flex gap-4 mb-3">
+            <div className="flex flex-col sm:flex-row gap-4 mb-3">
               {(['conservative', 'base', 'optimistic'] as const).map((s) => (
                 <label key={s} className="text-sm capitalize">
                   {s}:
@@ -94,7 +116,7 @@ export default function ResultsStep({ inputs, outputs, dispatch }: ResultsStepPr
               const fmtP = (n: number | null) =>
                 n === null ? 'N/A' : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
               return (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                   <div className="p-3 bg-gray-50 rounded border"><div className="text-gray-500">Conservative</div><div className="font-semibold">{fmtP(result.conservative)}</div></div>
                   <div className="p-3 bg-gray-50 rounded border"><div className="text-gray-500">Base</div><div className="font-semibold">{fmtP(result.base)}</div></div>
                   <div className="p-3 bg-gray-50 rounded border"><div className="text-gray-500">Optimistic</div><div className="font-semibold">{fmtP(result.optimistic)}</div></div>

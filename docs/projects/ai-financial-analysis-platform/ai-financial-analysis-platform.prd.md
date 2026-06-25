@@ -453,7 +453,7 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 ---
 
-### EPIC-008: UI/UX Polish
+### EPIC-008: UI/UX Polish ✅ DONE
 
 **Goal**: Implement navigation bar, typography/spacing scale, valuation breakdown visuals, key output highlighting, and responsive layout improvements.
 
@@ -461,11 +461,11 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-036 | Add persistent navigation bar to `App.tsx` layout: app title/logo left-aligned, step indicator centered (reuse `WorkflowStepIndicator`), "Start Over" action right-aligned. Sticky top. | Not Started | src/App.tsx |
-| ITEM-037 | Establish typography scale in `src/index.css` or Tailwind config: consistent heading sizes (h1-h4), body text, captions. Consistent spacing scale (4/8/12/16/24/32px). Apply across all step components. | Not Started | src/index.css, tailwind.config.js |
-| ITEM-038 | Enhance results display: highlight key outputs (enterprise value, equity value, implied share price) with large prominent cards at top of Step 4. Add valuation breakdown waterfall (reuse existing `Charts` component with waterfall data). | Not Started | src/components/ResultsStep.tsx |
-| ITEM-039 | Create `src/components/LoadingState.tsx`: reusable loading component with skeleton placeholders and stage-aware messaging ("Parsing your description...", "Retrieving market data...", "Generating assumptions..."). Appears within 200ms of async operation start (AC-021). | Not Started | src/components/LoadingState.tsx |
-| ITEM-040 | Responsive layout: ensure all step components work on mobile (sm breakpoint). Stack layouts vertically on small screens. Test at 375px width minimum. | Not Started | All step components |
+| ITEM-036 | Add persistent navigation bar to `App.tsx` layout: app title/logo left-aligned, step indicator centered (reuse `WorkflowStepIndicator`), "Start Over" action right-aligned. Sticky top. | Done | src/App.tsx |
+| ITEM-037 | Establish typography scale in `src/index.css` or Tailwind config: consistent heading sizes (h1-h4), body text, captions. Consistent spacing scale (4/8/12/16/24/32px). Apply across all step components. | Done | src/index.css, tailwind.config.js |
+| ITEM-038 | Enhance results display: highlight key outputs (enterprise value, equity value, implied share price) with large prominent cards at top of Step 4. Add valuation breakdown waterfall (reuse existing `Charts` component with waterfall data). | Done | src/components/ResultsStep.tsx, src/components/Charts.tsx |
+| ITEM-039 | Create `src/components/LoadingState.tsx`: reusable loading component with skeleton placeholders and stage-aware messaging ("Parsing your description...", "Retrieving market data...", "Generating assumptions..."). Appears within 200ms of async operation start (AC-021). | Done | src/components/LoadingState.tsx, src/components/loadingMessages.ts, src/components/InputStep.tsx |
+| ITEM-040 | Responsive layout: ensure all step components work on mobile (sm breakpoint). Stack layouts vertically on small screens. Test at 375px width minimum. | Done | All step components |
 
 ---
 

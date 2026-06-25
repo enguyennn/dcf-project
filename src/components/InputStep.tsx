@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import FileUpload from './FileUpload';
+import LoadingState from './LoadingState';
 import { hybridParse } from '../utils/hybridParser';
 import type { DCFInputs, FinancialData } from '../models/financialTypes';
 import type { AssumptionMetadata } from '../models/aiTypes';
@@ -67,7 +68,7 @@ export default function InputStep({ inputText, inputMode, dispatch }: InputStepP
       </p>
 
       {/* Mode tabs */}
-      <div className="flex border-b border-gray-300">
+      <div className="flex flex-wrap border-b border-gray-300">
         {([
           { key: 'nl' as const, label: 'Natural Language' },
           { key: 'structured' as const, label: 'Structured Data' },
@@ -108,8 +109,9 @@ export default function InputStep({ inputText, inputMode, dispatch }: InputStepP
             disabled={loading || !inputText.trim()}
             className="px-6 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Analyzing…' : 'Continue'}
+            Continue
           </button>
+          {loading && <LoadingState stage="generating" />}
         </div>
       ) : (
         <FileUpload onParsed={handleFileParsed} />

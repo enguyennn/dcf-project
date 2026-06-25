@@ -46,7 +46,7 @@ export default function AIAssumptionsStep({ inputs, metadata, dispatch }: AIAssu
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button
           type="button"
           onClick={() => dispatch({ type: 'BACK' })}

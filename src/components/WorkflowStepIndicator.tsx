@@ -18,7 +18,7 @@ export default function WorkflowStepIndicator({ currentStep, onNavigate }: Workf
   const currentIdx = STEP_ORDER.indexOf(currentStep);
 
   return (
-    <nav className="flex items-center justify-center gap-2 mb-8">
+    <nav className="flex flex-wrap items-center justify-center gap-2">
       {STEPS.map((s, idx) => {
         const isCompleted = idx < currentIdx;
         const isCurrent = idx === currentIdx;
