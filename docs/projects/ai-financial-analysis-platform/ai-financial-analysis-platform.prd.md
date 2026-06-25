@@ -429,10 +429,10 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-026 | Modify `src/models/financialTypes.ts`: add `rationale?: string` to `ResearchDataSource` interface. Add `AssumptionSource` type: `'industry-benchmark' \| 'ai-inferred' \| 'market-data' \| 'user-provided' \| 'default'`. Export both. | Not Started | src/models/financialTypes.ts |
-| ITEM-027 | Create `src/components/SourceBadge.tsx`: small badge component accepting `source: AssumptionSource` and optional `rationale: string`. Renders colored pill (blue=market-data, purple=ai-inferred, green=industry-benchmark, gray=default, orange=user-provided) with tooltip showing rationale on hover. | Not Started | src/components/SourceBadge.tsx |
-| ITEM-028 | Create `src/components/AssumptionSummary.tsx`: accepts metadata array, renders counts by source type ("3 AI-inferred, 2 market data, 4 industry benchmarks, 8 defaults"). Compact summary bar. | Not Started | src/components/AssumptionSummary.tsx |
-| ITEM-029 | Integrate source badges into `AIAssumptionsStep` (Step 2): each displayed assumption shows its `SourceBadge` with rationale. User can click to expand full rationale text. | Not Started | src/components/AIAssumptionsStep.tsx |
+| ITEM-026 | Modify `src/models/financialTypes.ts`: add `rationale?: string` to `ResearchDataSource` interface. Add `AssumptionSource` type: `'industry-benchmark' \| 'ai-inferred' \| 'market-data' \| 'user-provided' \| 'default'`. Export both. | Done | src/models/financialTypes.ts |
+| ITEM-027 | Create `src/components/SourceBadge.tsx`: small badge component accepting `source: AssumptionSource` and optional `rationale: string`. Renders colored pill (blue=market-data, purple=ai-inferred, green=industry-benchmark, gray=default, orange=user-provided) with tooltip showing rationale on hover. | Done | src/components/SourceBadge.tsx |
+| ITEM-028 | Create `src/components/AssumptionSummary.tsx`: accepts metadata array, renders counts by source type ("3 AI-inferred, 2 market data, 4 industry benchmarks, 8 defaults"). Compact summary bar. | Done | src/components/AssumptionSummary.tsx |
+| ITEM-029 | Integrate source badges into `AIAssumptionsStep` (Step 2): each displayed assumption shows its `SourceBadge` with rationale. User can click to expand full rationale text. | Deferred → EPIC-008 | src/components/AIAssumptionsStep.tsx |
 
 ---
 

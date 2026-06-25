@@ -89,4 +89,13 @@ export interface ResearchDataSource {
   source: string;
   retrievedAt: string;
   confidence: 'high' | 'medium' | 'low';
+  rationale?: string;
 }
+
+/** Indicates how an assumption value was sourced (canonical home). */
+export type AssumptionSource =
+  | 'industry-benchmark'
+  | 'ai-inferred'
+  | 'market-data'
+  | 'user-provided'
+  | 'default';

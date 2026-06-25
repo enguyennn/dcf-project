@@ -1,12 +1,7 @@
-import type { DCFInputs, ResearchDataSource } from './financialTypes';
+import type { DCFInputs, ResearchDataSource, AssumptionSource } from './financialTypes';
 
-/** Indicates how an assumption value was sourced. */
-export type AssumptionSource =
-  | 'industry-benchmark'
-  | 'ai-inferred'
-  | 'market-data'
-  | 'user-provided'
-  | 'default';
+// Re-export AssumptionSource so existing consumers of aiTypes keep working.
+export type { AssumptionSource } from './financialTypes';
 
 /** Metadata for a single assumption field produced by the AI parse pipeline. */
 export interface AssumptionMetadata {
