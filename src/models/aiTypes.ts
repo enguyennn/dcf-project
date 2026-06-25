@@ -40,9 +40,9 @@ export type WorkflowAction =
 
 /** Response from the AI parse endpoint. */
 export interface ParseResponse {
-  inputs: Partial<DCFInputs>;
+  assumptions: Partial<DCFInputs>;
   metadata: AssumptionMetadata[];
-  warnings?: string[];
+  followUp?: string[];
 }
 
 /** Response from the market data endpoint. */

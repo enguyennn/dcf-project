@@ -390,7 +390,7 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 ---
 
-### EPIC-004: LLM Parse Endpoint
+### EPIC-004: LLM Parse Endpoint ✅ DONE
 
 **Goal**: Implement `POST /api/parse` serverless function with OpenAI GPT-4o-mini structured output, response validation, unit normalization, and plausibility checks.
 
@@ -398,11 +398,11 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-017 | Add `openai` npm package: `npm install openai` (server-side only; Vite tree-shakes it from client bundle since it's only imported in `api/` directory). | Not Started | package.json |
-| ITEM-018 | Create `api/lib/llmProvider.ts`: define `LLMProvider` interface with `parseFinancialText(text: string, industry?: string): Promise<ParseResponse>`. Implement `OpenAIProvider` class using `openai` SDK with structured output (function-calling). System prompt instructs extraction of: revenue, revenueGrowthRate, operatingMarginRate, industry, dAndARate, capExRate, nwcRate, taxRate, beta — all as decimals for rates. Temperature 0. Model: `gpt-4o-mini`. Return `{ assumptions: Partial<DCFInputs>, metadata: AssumptionMetadata[] }`. | Not Started | api/lib/llmProvider.ts |
-| ITEM-019 | Create `api/lib/plausibilityValidator.ts`: `validateLLMOutput(parsed: Partial<DCFInputs>): { valid: Partial<DCFInputs>, warnings: string[], corrections: Record<string, { from: number, to: number }> }`. Checks: rates in [0, 1] (if >1 and <100, auto-divide by 100 with correction note); growth rate in [-0.5, 1.0]; margin in [-0.5, 0.9]; beta in [0, 5]; revenue > 0. Flags but does not reject outliers. | Not Started | api/lib/plausibilityValidator.ts |
-| ITEM-020 | Create `api/parse.ts`: POST handler. Validates input via `validateParseInput`. Calls `OpenAIProvider.parseFinancialText`. Runs plausibility validator on output. If zero financial data extracted (FM-004), returns `{ assumptions: {}, followUp: ['What is the company revenue?', ...] }`. Returns full `ParseResponse`. Apply CORS + rate limiting. | Not Started | api/parse.ts |
-| ITEM-021 | Create `tests/apiParse.test.ts`: unit test the parse handler logic (mock OpenAI responses). Test cases: (1) complete extraction from "A $50M SaaS company growing 30% with 70% margins", (2) partial extraction requiring follow-up, (3) empty/nonsense input triggering follow-up questions, (4) LLM returns percentages instead of decimals — verify auto-correction, (5) input exceeding 2000 chars — verify rejection. | Not Started | tests/apiParse.test.ts |
+| ITEM-017 | Add `openai` npm package: `npm install openai` (server-side only; Vite tree-shakes it from client bundle since it's only imported in `api/` directory). | Done | package.json |
+| ITEM-018 | Create `api/lib/llmProvider.ts`: define `LLMProvider` interface with `parseFinancialText(text: string, industry?: string): Promise<ParseResponse>`. Implement `OpenAIProvider` class using `openai` SDK with structured output (function-calling). System prompt instructs extraction of: revenue, revenueGrowthRate, operatingMarginRate, industry, dAndARate, capExRate, nwcRate, taxRate, beta — all as decimals for rates. Temperature 0. Model: `gpt-4o-mini`. Return `{ assumptions: Partial<DCFInputs>, metadata: AssumptionMetadata[] }`. | Done | api/lib/llmProvider.ts |
+| ITEM-019 | Create `api/lib/plausibilityValidator.ts`: `validateLLMOutput(parsed: Partial<DCFInputs>): { valid: Partial<DCFInputs>, warnings: string[], corrections: Record<string, { from: number, to: number }> }`. Checks: rates in [0, 1] (if >1 and <100, auto-divide by 100 with correction note); growth rate in [-0.5, 1.0]; margin in [-0.5, 0.9]; beta in [0, 5]; revenue > 0. Flags but does not reject outliers. | Done | api/lib/plausibilityValidator.ts |
+| ITEM-020 | Create `api/parse.ts`: POST handler. Validates input via `validateParseInput`. Calls `OpenAIProvider.parseFinancialText`. Runs plausibility validator on output. If zero financial data extracted (FM-004), returns `{ assumptions: {}, followUp: ['What is the company revenue?', ...] }`. Returns full `ParseResponse`. Apply CORS + rate limiting. | Done | api/parse.ts |
+| ITEM-021 | Create `tests/apiParse.test.ts`: unit test the parse handler logic (mock OpenAI responses). Test cases: (1) complete extraction from "A $50M SaaS company growing 30% with 70% margins", (2) partial extraction requiring follow-up, (3) empty/nonsense input triggering follow-up questions, (4) LLM returns percentages instead of decimals — verify auto-correction, (5) input exceeding 2000 chars — verify rejection. | Done | tests/apiParse.test.ts |
 
 ---
 
