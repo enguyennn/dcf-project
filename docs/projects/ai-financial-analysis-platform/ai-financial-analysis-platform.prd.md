@@ -486,7 +486,7 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 ---
 
-### EPIC-010: End-to-End Validation Against Success Metrics
+### EPIC-010: End-to-End Validation Against Success Metrics ✅ DONE
 
 **Goal**: Validate the complete system against the REQ's success metrics: single-sentence-to-model, ≥70% manual input reduction, zero parse errors for 50+ NL inputs, p95 response ≤8s.
 
@@ -494,11 +494,11 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-047 | Create `tests/e2e/singleSentence.test.ts`: integration test that sends "A mid-size SaaS company growing 30% YoY with 70% gross margins" through the hybrid parser → `/api/parse` → verify returned `DCFInputs` has all required fields populated → run through `runFullDCF` → verify non-zero enterpriseValue and equityValue. | Not Started | tests/e2e/singleSentence.test.ts |
-| ITEM-048 | Create `tests/e2e/parseErrorFree.test.ts`: test suite with 50+ diverse NL inputs (varying industries, formats, verbosity, ambiguity). Verify zero `errors[]` exposed to caller from `hybridParse` for all inputs. Inputs include: single sentences, paragraphs, mixed structured+NL, non-English numbers, edge cases. | Not Started | tests/e2e/parseErrorFree.test.ts |
-| ITEM-049 | Create `tests/e2e/inputReduction.test.ts`: measure fields populated by AI + market data vs. total required fields. Verify ≥70% reduction (≤5 manual fields out of 17 total). Test with 5+ different company descriptions. | Not Started | tests/e2e/inputReduction.test.ts |
-| ITEM-050 | Performance validation: measure p95 response time for `/api/parse` endpoint with 20+ requests. Verify ≤8 seconds end-to-end (submit → assumptions displayed). Document results. | Not Started | tests/e2e/performance.test.ts |
-| ITEM-051 | Bundle size validation: run `vite build`, measure total gzipped JS output, verify <200KB. Document current size vs. budget in test output. | Not Started | tests/e2e/bundleSize.test.ts |
+| ITEM-047 | Create `tests/e2e/singleSentence.test.ts`: integration test that sends "A mid-size SaaS company growing 30% YoY with 70% gross margins" through the hybrid parser → `/api/parse` → verify returned `DCFInputs` has all required fields populated → run through `runFullDCF` → verify non-zero enterpriseValue and equityValue. | Done | tests/e2e/singleSentence.test.ts |
+| ITEM-048 | Create `tests/e2e/parseErrorFree.test.ts`: test suite with 50+ diverse NL inputs (varying industries, formats, verbosity, ambiguity). Verify zero `errors[]` exposed to caller from `hybridParse` for all inputs. Inputs include: single sentences, paragraphs, mixed structured+NL, non-English numbers, edge cases. | Done | tests/e2e/parseErrorFree.test.ts |
+| ITEM-049 | Create `tests/e2e/inputReduction.test.ts`: measure fields populated by AI + market data vs. total required fields. Verify ≥70% reduction (≤5 manual fields out of 17 total). Test with 5+ different company descriptions. | Done | tests/e2e/inputReduction.test.ts |
+| ITEM-050 | Performance validation: measure p95 response time for `/api/parse` endpoint with 20+ requests. Verify ≤8 seconds end-to-end (submit → assumptions displayed). Document results. | Done | tests/e2e/performance.test.ts |
+| ITEM-051 | Bundle size validation: run `vite build`, measure total gzipped JS output, verify <200KB. Document current size vs. budget in test output. | Done | tests/e2e/bundleSize.test.ts |
 
 ---
 
