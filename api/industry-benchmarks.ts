@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyCors } from './lib/cors';
-import { checkRateLimit } from './lib/rateLimiter';
+import { applyCors } from '../lib/cors';
+import { checkRateLimit } from '../lib/rateLimiter';
 import { INDUSTRY_BENCHMARKS, lookupBenchmark } from '../src/data/industryBenchmarks';
 import type { IndustryBenchmark } from '../src/models/aiTypes';
 

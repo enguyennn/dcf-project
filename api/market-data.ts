@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyCors } from './lib/cors';
-import { checkRateLimit } from './lib/rateLimiter';
-import { validateTickerInput } from './lib/validation';
-import { AlphaVantageProvider } from './lib/marketDataProvider';
+import { applyCors } from '../lib/cors';
+import { checkRateLimit } from '../lib/rateLimiter';
+import { validateTickerInput } from '../lib/validation';
+import { AlphaVantageProvider } from '../lib/marketDataProvider';
 import type { ResearchDataSource } from '../src/models/financialTypes';
 
 /**

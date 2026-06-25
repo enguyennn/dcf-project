@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { handleParse } from '../api/parse';
-import type { LLMProvider } from '../api/lib/llmProvider';
+import type { LLMProvider } from '../lib/llmProvider';
 import type { ParseResponse } from '../src/models/aiTypes';
 
 function createFakeProvider(

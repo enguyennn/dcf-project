@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import type { ParseResponse, AssumptionMetadata } from '../../src/models/aiTypes';
-import type { DCFInputs } from '../../src/models/financialTypes';
+import type { ParseResponse, AssumptionMetadata } from '../src/models/aiTypes';
+import type { DCFInputs } from '../src/models/financialTypes';
 
 /** Minimal structural type matching the OpenAI SDK's chat.completions.create call. */
 export interface OpenAILike {

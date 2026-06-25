@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyCors } from './lib/cors';
-import { checkRateLimit } from './lib/rateLimiter';
-import { validateParseInput } from './lib/validation';
-import { validateLLMOutput } from './lib/plausibilityValidator';
-import { OpenAIProvider } from './lib/llmProvider';
-import type { LLMProvider } from './lib/llmProvider';
+import { applyCors } from '../lib/cors';
+import { checkRateLimit } from '../lib/rateLimiter';
+import { validateParseInput } from '../lib/validation';
+import { validateLLMOutput } from '../lib/plausibilityValidator';
+import { OpenAIProvider } from '../lib/llmProvider';
+import type { LLMProvider } from '../lib/llmProvider';
 import type { ParseResponse } from '../src/models/aiTypes';
 
 /** Required-field → follow-up question map. */

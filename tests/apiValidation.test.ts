@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateParseInput, validateTickerInput } from '../api/lib/validation';
+import { validateParseInput, validateTickerInput } from '../lib/validation';
 
 describe('validateParseInput', () => {
   it('accepts valid input with text only', () => {

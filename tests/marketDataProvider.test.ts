@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { AlphaVantageProvider } from '../api/lib/marketDataProvider';
+import { AlphaVantageProvider } from '../lib/marketDataProvider';
 
 describe('AlphaVantageProvider', () => {
   afterEach(() => {

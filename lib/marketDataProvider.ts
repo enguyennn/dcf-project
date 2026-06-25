@@ -1,4 +1,4 @@
-import type { ResearchDataSource } from '../../src/models/financialTypes';
+import type { ResearchDataSource } from '../src/models/financialTypes';
 
 export interface MarketDataProvider {
   fetchBeta(ticker: string): Promise<ResearchDataSource>;

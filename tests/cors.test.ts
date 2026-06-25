@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { applyCors } from '../api/lib/cors';
+import { applyCors } from '../lib/cors';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 function mockReq(method: string, origin?: string): VercelRequest {

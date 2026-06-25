@@ -1,4 +1,4 @@
-import type { DCFInputs } from '../../src/models/financialTypes';
+import type { DCFInputs } from '../src/models/financialTypes';
 
 /** Rate fields eligible for auto-correction (percentage → decimal). */
 const RATE_FIELDS: ReadonlyArray<keyof DCFInputs> = [

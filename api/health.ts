@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyCors } from './lib/cors';
-import { checkRateLimit } from './lib/rateLimiter';
+import { applyCors } from '../lib/cors';
+import { checkRateLimit } from '../lib/rateLimiter';
 
 export default function handler(req: VercelRequest, res: VercelResponse): void {
   if (applyCors(req, res)) return;
