@@ -3,7 +3,6 @@ import Disclaimer from './components/Disclaimer'
 import TextInputPanel from './components/TextInputPanel'
 import FileUpload from './components/FileUpload'
 import AssumptionsForm from './components/AssumptionsForm'
-import SettingsPanel from './components/SettingsPanel'
 import DcfOutputTable from './components/DcfOutputTable'
 import SensitivityTable from './components/SensitivityTable'
 import Comparables from './components/Comparables'
@@ -89,14 +88,7 @@ function App() {
     })
   }
 
-  function handleResearched(data: Partial<Record<string, ResearchDataSource>>) {
-    for (const [field, source] of Object.entries(data)) {
-      if (source) {
-        handleFieldChange(field, source.value);
-        setResearched((prev) => ({ ...prev, [field]: source }));
-      }
-    }
-  }
+
 
   function handleUseManual(field: string) {
     setResearched((prev) => {
@@ -114,7 +106,6 @@ function App() {
           <div>
             {mode === 'paste' && <TextInputPanel onParsed={handleParsed} />}
             {mode === 'upload' && <FileUpload onParsed={handleExcelParsed} />}
-            <SettingsPanel onResearched={handleResearched} />
             <AssumptionsForm values={inputs} onChange={handleFieldChange} researched={researched} onUseManual={handleUseManual} />
           </div>
           <div>

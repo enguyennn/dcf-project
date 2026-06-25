@@ -1,3 +1,8 @@
+/**
+ * @deprecated This module's logic has been moved server-side to api/lib/marketDataProvider.ts (FR-007.5).
+ * The client should use src/utils/marketDataClient.ts instead.
+ * Retained for reference and existing test coverage.
+ */
 import type { ResearchDataSource } from '../models/financialTypes';
 
 type ResearchField = 'riskFreeRate' | 'beta' | 'equityRiskPremium';

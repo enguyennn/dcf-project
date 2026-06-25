@@ -371,7 +371,9 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 ---
 
-### EPIC-003: Market Data Proxy Endpoint
+### EPIC-003: Market Data Proxy Endpoint ✅
+
+**Status**: Done
 
 **Goal**: Move Alpha Vantage market data retrieval server-side, expose via `GET /api/market-data`, remove client-side API key requirement, and delete `SettingsPanel`.
 
@@ -379,12 +381,12 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-011 | Create `api/lib/marketDataProvider.ts`: define `MarketDataProvider` interface with `fetchBeta(ticker): Promise<ResearchDataSource>`, `fetchRiskFreeRate(): Promise<ResearchDataSource>`, `fetchERP(): Promise<ResearchDataSource>`. Implement `AlphaVantageProvider` class reading `ALPHAVANTAGE_API_KEY` from `process.env`. Reuse fetch logic from existing `src/utils/researchApi.ts` (same endpoints, same parsing). Add retry with exponential backoff (max 3 retries per NFR-002.3). | Not Started | api/lib/marketDataProvider.ts |
-| ITEM-012 | Create `api/market-data.ts`: GET handler accepting `?ticker=X` query param. Validates ticker via `validateTickerInput`. Calls `AlphaVantageProvider` methods. Returns `{ data: { beta, riskFreeRate, equityRiskPremium }, source, retrievedAt }`. On failure: returns fallback defaults with `source: 'default'` and explanation. Apply CORS + rate limiting. Add simple in-memory cache (TTL 1 hour for treasury data). | Not Started | api/market-data.ts |
-| ITEM-013 | Create `src/utils/marketDataClient.ts`: client-side fetch wrapper `fetchMarketDataFromServer(ticker: string): Promise<MarketDataResponse>`. Calls `GET /api/market-data?ticker=X` with 8s timeout. Returns typed response. No API key parameter. | Not Started | src/utils/marketDataClient.ts |
-| ITEM-014 | Delete `src/components/SettingsPanel.tsx`. Remove its import and usage from `src/App.tsx`. Remove any `localStorage('dcf.apiKey')` references. | Not Started | src/components/SettingsPanel.tsx (delete), src/App.tsx |
-| ITEM-015 | Mark `src/utils/researchApi.ts` as deprecated with JSDoc comment. The module remains for reference but is no longer called by client code (logic moved server-side). | Not Started | src/utils/researchApi.ts |
-| ITEM-016 | Create `tests/marketDataProvider.test.ts`: unit test `AlphaVantageProvider` with mocked fetch responses (success, rate-limited, timeout, invalid JSON). Verify retry behavior. Verify fallback on failure. | Not Started | tests/marketDataProvider.test.ts |
+| ITEM-011 | Create `api/lib/marketDataProvider.ts`: define `MarketDataProvider` interface with `fetchBeta(ticker): Promise<ResearchDataSource>`, `fetchRiskFreeRate(): Promise<ResearchDataSource>`, `fetchERP(): Promise<ResearchDataSource>`. Implement `AlphaVantageProvider` class reading `ALPHAVANTAGE_API_KEY` from `process.env`. Reuse fetch logic from existing `src/utils/researchApi.ts` (same endpoints, same parsing). Add retry with exponential backoff (max 3 retries per NFR-002.3). | Done | api/lib/marketDataProvider.ts |
+| ITEM-012 | Create `api/market-data.ts`: GET handler accepting `?ticker=X` query param. Validates ticker via `validateTickerInput`. Calls `AlphaVantageProvider` methods. Returns `{ data: { beta, riskFreeRate, equityRiskPremium }, source, retrievedAt }`. On failure: returns fallback defaults with `source: 'default'` and explanation. Apply CORS + rate limiting. Add simple in-memory cache (TTL 1 hour for treasury data). | Done | api/market-data.ts |
+| ITEM-013 | Create `src/utils/marketDataClient.ts`: client-side fetch wrapper `fetchMarketDataFromServer(ticker: string): Promise<MarketDataResponse>`. Calls `GET /api/market-data?ticker=X` with 8s timeout. Returns typed response. No API key parameter. | Done | src/utils/marketDataClient.ts |
+| ITEM-014 | Delete `src/components/SettingsPanel.tsx`. Remove its import and usage from `src/App.tsx`. Remove any `localStorage('dcf.apiKey')` references. | Done | src/components/SettingsPanel.tsx (delete), src/App.tsx |
+| ITEM-015 | Mark `src/utils/researchApi.ts` as deprecated with JSDoc comment. The module remains for reference but is no longer called by client code (logic moved server-side). | Done | src/utils/researchApi.ts |
+| ITEM-016 | Create `tests/marketDataProvider.test.ts`: unit test `AlphaVantageProvider` with mocked fetch responses (success, rate-limited, timeout, invalid JSON). Verify retry behavior. Verify fallback on failure. | Done | tests/marketDataProvider.test.ts |
 
 ---
 
