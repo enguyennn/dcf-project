@@ -364,10 +364,10 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-007 | Create `src/data/industryBenchmarks.ts`: export `INDUSTRY_BENCHMARKS` constant — an array of `IndustryBenchmark` objects for ≥10 industries (SaaS, Manufacturing, Retail, Healthcare, Fintech, Energy, Consumer Goods, Real Estate, Telecom, Media). Each entry includes: `industry` name, `aliases` array, `revenueGrowthRate` (decimal), `operatingMarginRate` (decimal), `dAndARate`, `capExRate`, `nwcRate`, `costOfDebt`, `betaRange: { low, mid, high }`. All rates as decimals per CON-005. | Not Started | src/data/industryBenchmarks.ts |
-| ITEM-008 | Add `lookupBenchmark(industry: string): IndustryBenchmark \| undefined` function to the same file: case-insensitive fuzzy match against `industry` name and `aliases` array. Returns best match or undefined. | Not Started | src/data/industryBenchmarks.ts |
-| ITEM-009 | Create `api/industry-benchmarks.ts`: GET handler that reads `industry` query param, calls `lookupBenchmark`, returns JSON benchmark or 404 with `{ error: 'Industry not found', available: string[] }`. Apply CORS + rate limiting. | Not Started | api/industry-benchmarks.ts |
-| ITEM-010 | Create `tests/industryBenchmarks.test.ts`: verify ≥10 industries exist; verify fuzzy matching (e.g., "saas" matches "SaaS", "software" matches "SaaS"); verify all rates are valid decimals in [0,1]; verify unknown industry returns undefined. | Not Started | tests/industryBenchmarks.test.ts |
+| ITEM-007 | Create `src/data/industryBenchmarks.ts`: export `INDUSTRY_BENCHMARKS` constant — an array of `IndustryBenchmark` objects for ≥10 industries (SaaS, Manufacturing, Retail, Healthcare, Fintech, Energy, Consumer Goods, Real Estate, Telecom, Media). Each entry includes: `industry` name, `aliases` array, `revenueGrowthRate` (decimal), `operatingMarginRate` (decimal), `dAndARate`, `capExRate`, `nwcRate`, `costOfDebt`, `betaRange: { low, mid, high }`. All rates as decimals per CON-005. | Done | src/data/industryBenchmarks.ts |
+| ITEM-008 | Add `lookupBenchmark(industry: string): IndustryBenchmark \| undefined` function to the same file: case-insensitive fuzzy match against `industry` name and `aliases` array. Returns best match or undefined. | Done | src/data/industryBenchmarks.ts |
+| ITEM-009 | Create `api/industry-benchmarks.ts`: GET handler that reads `industry` query param, calls `lookupBenchmark`, returns JSON benchmark or 404 with `{ error: 'Industry not found', available: string[] }`. Apply CORS + rate limiting. | Done | api/industry-benchmarks.ts |
+| ITEM-010 | Create `tests/industryBenchmarks.test.ts`: verify ≥10 industries exist; verify fuzzy matching (e.g., "saas" matches "SaaS", "software" matches "SaaS"); verify all rates are valid decimals in [0,1]; verify unknown industry returns undefined. | Done | tests/industryBenchmarks.test.ts |
 
 ---
 
