@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck:api": "tsc -p tsconfig.api.json --noEmit"
+    "typecheck:api": "tsc -p tsconfig.api.json --noEmit",
+    "build:check-size": "npm run build && node scripts/check-bundle-size.mjs"
   },
   "dependencies": {
     "openai": "^6.45.0",

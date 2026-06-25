@@ -469,7 +469,7 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 ---
 
-### EPIC-009: Performance, Cost, and Security Hardening
+### EPIC-009: Performance, Cost, and Security Hardening ✅ DONE
 
 **Goal**: Implement caching TTLs, rate limiting integration, CORS enforcement, bundle size CI check, and production-ready error handling.
 
@@ -477,12 +477,12 @@ This initiative introduces server-side code (Vercel Serverless Functions), exter
 
 | Task | Description | Status | Files |
 |------|-------------|--------|-------|
-| ITEM-041 | Implement response caching in `api/market-data.ts`: cache treasury yield response for 1 hour, beta for 1 hour. Use in-memory Map with TTL expiry check. Cache key = ticker + endpoint. | Not Started | api/market-data.ts |
-| ITEM-042 | Implement response caching in `api/industry-benchmarks.ts`: cache responses for 24 hours (data is static, rarely changes). | Not Started | api/industry-benchmarks.ts |
-| ITEM-043 | Integrate rate limiter into all three API handlers (`/api/parse`, `/api/market-data`, `/api/industry-benchmarks`). Return 429 Too Many Requests with `Retry-After` header when limit exceeded. Parse endpoint: 10 req/min per IP. Market data: 20 req/min per IP. Benchmarks: 60 req/min per IP. | Not Started | api/parse.ts, api/market-data.ts, api/industry-benchmarks.ts |
-| ITEM-044 | Enforce CORS in all API handlers: only allow configured origin. Reject requests from disallowed origins with 403. | Not Started | api/parse.ts, api/market-data.ts, api/industry-benchmarks.ts |
-| ITEM-045 | Add bundle size check to `package.json` scripts: `"build:check-size"` script that runs `vite build` and verifies total gzipped JS < 200KB. Document as pre-push check. Consider adding to CI. | Not Started | package.json |
-| ITEM-046 | Add comprehensive error handling in all serverless functions: try/catch at handler level, log errors (console for Vercel logs), return consistent error shape `{ error: string, code: string }`. Never expose stack traces or internal details to client. | Not Started | api/parse.ts, api/market-data.ts, api/industry-benchmarks.ts |
+| ITEM-041 | Implement response caching in `api/market-data.ts`: cache treasury yield response for 1 hour, beta for 1 hour. Use in-memory Map with TTL expiry check. Cache key = ticker + endpoint. | Done | api/market-data.ts |
+| ITEM-042 | Implement response caching in `api/industry-benchmarks.ts`: cache responses for 24 hours (data is static, rarely changes). | Done | api/industry-benchmarks.ts |
+| ITEM-043 | Integrate rate limiter into all three API handlers (`/api/parse`, `/api/market-data`, `/api/industry-benchmarks`). Return 429 Too Many Requests with `Retry-After` header when limit exceeded. Parse endpoint: 10 req/min per IP. Market data: 20 req/min per IP. Benchmarks: 60 req/min per IP. | Done | api/parse.ts, api/market-data.ts, api/industry-benchmarks.ts |
+| ITEM-044 | Enforce CORS in all API handlers: only allow configured origin. Reject requests from disallowed origins with 403. | Done | api/parse.ts, api/market-data.ts, api/industry-benchmarks.ts |
+| ITEM-045 | Add bundle size check to `package.json` scripts: `"build:check-size"` script that runs `vite build` and verifies total gzipped JS < 200KB. Document as pre-push check. Consider adding to CI. | Done | package.json, scripts/check-bundle-size.mjs |
+| ITEM-046 | Add comprehensive error handling in all serverless functions: try/catch at handler level, log errors (console for Vercel logs), return consistent error shape `{ error: string, code: string }`. Never expose stack traces or internal details to client. | Done | api/parse.ts, api/market-data.ts, api/industry-benchmarks.ts |
 
 ---
 

@@ -78,4 +78,38 @@ describe('checkRateLimit', () => {
     }
     expect(checkRateLimit('default-ip').allowed).toBe(false);
   });
+
+  it('namespaced keys isolate per-endpoint buckets', () => {
+    const limit = 2;
+    checkRateLimit('parse:10.0.0.1', limit);
+    checkRateLimit('parse:10.0.0.1', limit);
+    expect(checkRateLimit('parse:10.0.0.1', limit).allowed).toBe(false);
+
+    // Same IP, different namespace → still allowed
+    expect(checkRateLimit('market-data:10.0.0.1', limit).allowed).toBe(true);
+    expect(checkRateLimit('benchmarks:10.0.0.1', limit).allowed).toBe(true);
+  });
+
+  it('returns retryAfterSeconds when blocked', () => {
+    const limit = 1;
+    const windowMs = 60_000;
+    checkRateLimit('retry-ip', limit, windowMs);
+    const result = checkRateLimit('retry-ip', limit, windowMs);
+    expect(result.allowed).toBe(false);
+    expect(result.retryAfterSeconds).toBeGreaterThan(0);
+    expect(result.retryAfterSeconds).toBeLessThanOrEqual(60);
+  });
+
+  it('retryAfterSeconds decreases as time passes', () => {
+    const limit = 1;
+    const windowMs = 10_000;
+    checkRateLimit('decay-ip', limit, windowMs);
+
+    vi.advanceTimersByTime(4000);
+    const result = checkRateLimit('decay-ip', limit, windowMs);
+    expect(result.allowed).toBe(false);
+    // Should be ~6 seconds remaining
+    expect(result.retryAfterSeconds).toBeLessThanOrEqual(7);
+    expect(result.retryAfterSeconds).toBeGreaterThanOrEqual(5);
+  });
 });

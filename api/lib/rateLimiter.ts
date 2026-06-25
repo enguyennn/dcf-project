@@ -4,7 +4,7 @@ export function checkRateLimit(
   ip: string,
   limit = 20,
   windowMs = 60_000
-): { allowed: boolean; remaining: number } {
+): { allowed: boolean; remaining: number; retryAfterSeconds?: number } {
   const now = Date.now();
   const timestamps = requests.get(ip) ?? [];
 
@@ -13,7 +13,10 @@ export function checkRateLimit(
 
   if (valid.length >= limit) {
     requests.set(ip, valid);
-    return { allowed: false, remaining: 0 };
+    const oldestValid = valid[0];
+    const retryAfterMs = windowMs - (now - oldestValid);
+    const retryAfterSeconds = Math.ceil(retryAfterMs / 1000);
+    return { allowed: false, remaining: 0, retryAfterSeconds };
   }
 
   valid.push(now);

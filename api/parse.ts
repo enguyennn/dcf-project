@@ -84,19 +84,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   if (applyCors(req, res)) return;
 
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed', code: 'METHOD_NOT_ALLOWED' });
     return;
   }
 
   const forwarded = req.headers['x-forwarded-for'];
   const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : 'unknown';
 
-  const { allowed } = checkRateLimit(ip);
+  const { allowed, retryAfterSeconds } = checkRateLimit(`parse:${ip}`, 10);
   if (!allowed) {
-    res.status(429).json({ error: 'Too many requests' });
+    res.setHeader('Retry-After', String(retryAfterSeconds));
+    res.status(429).json({ error: 'Rate limit exceeded', code: 'RATE_LIMITED' });
     return;
   }
 
-  const { status, body } = await handleParse(req.body, new OpenAIProvider());
-  res.status(status).json(body);
+  try {
+    const { status, body } = await handleParse(req.body, new OpenAIProvider());
+    res.status(status).json(body);
+  } catch (err: unknown) {
+    console.error('parse handler error:', err);
+    res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+  }
 }
