@@ -15,23 +15,9 @@ export interface AssumptionMetadata {
 /** Steps in the 4-step AI-assisted workflow. */
 export type WorkflowStep = 'input' | 'assumptions' | 'review' | 'results';
 
-/** State machine for the AI workflow. */
-export interface WorkflowState {
-  step: WorkflowStep;
-  inputText: string;
-  parsedAssumptions: Partial<DCFInputs> | null;
-  metadata: AssumptionMetadata[];
-  warnings: string[];
-}
-
-/** Discriminated-union actions for the workflow reducer. */
-export type WorkflowAction =
-  | { type: 'GOTO_STEP'; step: WorkflowStep }
-  | { type: 'NEXT' }
-  | { type: 'BACK' }
-  | { type: 'RESET' }
-  | { type: 'SET_INPUT'; text: string }
-  | { type: 'SET_ASSUMPTIONS'; assumptions: Partial<DCFInputs>; metadata: AssumptionMetadata[] };
+// Canonical WorkflowState and WorkflowAction are defined in src/utils/workflowReducer.ts.
+// Re-export them here so existing imports from aiTypes continue to work.
+export type { WorkflowState, WorkflowAction } from '../utils/workflowReducer';
 
 /** Response from the AI parse endpoint. */
 export interface ParseResponse {
